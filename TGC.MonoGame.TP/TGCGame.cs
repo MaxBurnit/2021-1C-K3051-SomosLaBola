@@ -48,6 +48,7 @@ namespace TGC.MonoGame.TP
         private Vector3 SpherePosition { get; set; }
         private TorusPrimitive Torus { get; set; }
         private Vector3 TorusPosition { get; set; }
+        private CylinderPrimitive Cylinder { get; set; }
 
         private float Time = 0;
 
@@ -78,6 +79,8 @@ namespace TGC.MonoGame.TP
             TorusPosition = new Vector3(0, -2, -10);
             
             Time = 0;
+
+            Cylinder = new CylinderPrimitive(GraphicsDevice, 20, 5);
 
             /*// Configuramos nuestras matrices de la escena.
             World = Matrix.Identity;
@@ -164,10 +167,13 @@ namespace TGC.MonoGame.TP
             Time+=0.5f;
             DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
             DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi/2, 0);
-            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(Vector3.UnitX * -20), Camera.View,
+            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(-30, 0, -10)), Camera.View,
                Camera.Projection);
-            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(Vector3.UnitX * 20), Camera.View,
+            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(30, 0, -10)), Camera.View,
                Camera.Projection);
+            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
+            DrawGeometry(Cylinder, new Vector3(10, 5, -5), 0, MathHelper.Pi / 2, (float)gameTime.TotalGameTime.TotalSeconds);
+            DrawGeometry(Cylinder, new Vector3(10, 5, -5), (float)gameTime.TotalGameTime.TotalSeconds, 0, 0);
         }
 
         private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw, float pitch, float roll)
