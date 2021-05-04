@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TGC.MonoGame.Samples.Cameras;
 using TGC.MonoGame.Samples.Geometries;
+using TGC.MonoGame.Samples.Geometries.Textures;
+
 
 namespace TGC.MonoGame.TP
 {
@@ -49,6 +51,10 @@ namespace TGC.MonoGame.TP
         private TorusPrimitive Torus { get; set; }
         private Vector3 TorusPosition { get; set; }
         private CylinderPrimitive Cylinder { get; set; }
+        //private Vector3 CylinderPosition { get; set; }
+        private CubePrimitive Box { get; set; }
+        private Vector3 BoxPosition { get; set; }
+        
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -65,7 +71,7 @@ namespace TGC.MonoGame.TP
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
             // Seria hasta aca.
-            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, new Vector3(0, 20, 60), Vector3.Zero);
+            Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 55, 15, 0.5f);
 
             Sphere = new SpherePrimitive(GraphicsDevice, 10);
             SpherePosition = new Vector3(0, 0, 0);
@@ -75,6 +81,8 @@ namespace TGC.MonoGame.TP
 
             Cylinder = new CylinderPrimitive(GraphicsDevice, 20, 5);
 
+            Box = new CubePrimitive(GraphicsDevice, 10, Color.White);
+            BoxPosition = new Vector3(0, -10, 0);
             /*// Configuramos nuestras matrices de la escena.
             World = Matrix.Identity;
             View = Matrix.CreateLookAt(Vector3.UnitZ * 150, Vector3.Zero, Vector3.Up);
@@ -124,7 +132,10 @@ namespace TGC.MonoGame.TP
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 //Salgo del juego.
                 Exit();
+            
+            Camera.Update(gameTime);
 
+            //Game.Gizmos.UpdateViewProjection(Camera.View, Camera.Projection);
             /*// Basado en el tiempo que paso se va generando una rotacion.
             Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
 
@@ -156,6 +167,7 @@ namespace TGC.MonoGame.TP
             DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), 0, MathHelper.Pi / 2, (float)gameTime.TotalGameTime.TotalSeconds);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), (float)gameTime.TotalGameTime.TotalSeconds, 0, 0);
+            DrawGeometry(Box, BoxPosition,0,0,0);
         }
 
         private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw, float pitch, float roll)
