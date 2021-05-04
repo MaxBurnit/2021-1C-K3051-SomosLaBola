@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -41,7 +42,7 @@ namespace TGC.MonoGame.TP
         private GraphicsDeviceManager Graphics { get; }
         private SpriteBatch SpriteBatch { get; set; }
         private Model Model { get; set; }
-        private Effect Effect { get; set; }
+        private Effect Efecto { get; set; }
         private float Rotation { get; set; }
         private Matrix World { get; set; }
         private Matrix View { get; set; }
@@ -57,11 +58,15 @@ namespace TGC.MonoGame.TP
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
        
+        private Vector3 CameraPosition { get; set; }
+
+        private Vector3 CameraUpPosition { get; set;}
 
        private float Time = 0;
 
         private Model Cube { get; set; }
 
+        private Model Esfera { get; set; }
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -78,10 +83,13 @@ namespace TGC.MonoGame.TP
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
             // Seria hasta aca.
-            Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 55, 15, 0.5f);
+            CameraPosition = new Vector3(15,15,9);
+            CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
+            CameraUpPosition.Normalize();
+           // Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 55, 15, 0.5f);
 
             Sphere = new SpherePrimitive(GraphicsDevice, 10);
-            SpherePosition = new Vector3(0, 0, 0);
+            //SpherePosition = new Vector3(0, 0, 0);
 
             Torus = new TorusPrimitive(GraphicsDevice, 20,1);
             TorusPosition = new Vector3(0, -2, -10);
@@ -90,19 +98,16 @@ namespace TGC.MonoGame.TP
 
             Cylinder = new CylinderPrimitive(GraphicsDevice, 20, 5);
 
-
-            Box = new CubePrimitive(GraphicsDevice, 10, Color.White);
-            BoxPosition = new Vector3(0, -10, 0);
-
             Teapot = new TeapotPrimitive(GraphicsDevice, 10);
             TeapotPosition = new Vector3(-15, 10, 0);
 
 
-            /*// Configuramos nuestras matrices de la escena.
+            // Configuramos nuestras matrices de la escena.
+            SpherePosition = Vector3.Zero;
             World = Matrix.Identity;
-            View = Matrix.CreateLookAt(Vector3.UnitZ * 150, Vector3.Zero, Vector3.Up);
+            View = Matrix.CreateLookAt(CameraPosition, SpherePosition, CameraUpPosition);
             Projection =
-                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);*/
+                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
 
             base.Initialize();
         }
@@ -118,24 +123,26 @@ namespace TGC.MonoGame.TP
 
             Cube = Content.Load<Model>(ContentFolder3D + "geometries/cube");
             ((BasicEffect)Cube.Meshes.FirstOrDefault()?.Effects.FirstOrDefault())?.EnableDefaultLighting();
-            /*// Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
+
+            Esfera = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
+            // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Cargo el modelo del logo.
-            Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
+            //Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
 
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
-            Effect = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
+            Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
 
             // Asigno el efecto que cargue a cada parte del mesh.
             // Un modelo puede tener mas de 1 mesh internamente.
-            foreach (var mesh in Model.Meshes)
+            foreach (var mesh in Esfera.Meshes)
                 // Un mesh puede tener mas de 1 mesh part (cada 1 puede tener su propio efecto).
-            foreach (var meshPart in mesh.MeshParts)
-                meshPart.Effect = Effect;
+                foreach (var meshPart in mesh.MeshParts)
+                    meshPart.Effect = Efecto;
 
-            base.LoadContent();*/
+            base.LoadContent();
         }
 
         /// <summary>
@@ -152,13 +159,12 @@ namespace TGC.MonoGame.TP
                 //Salgo del juego.
                 Exit();
             
-            Camera.Update(gameTime);
+            //Camera.Update(gameTime);
 
-            //Game.Gizmos.UpdateViewProjection(Camera.View, Camera.Projection);
-            /*// Basado en el tiempo que paso se va generando una rotacion.
-            Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
-
-            base.Update(gameTime);*/
+            
+            // Basado en el tiempo que paso se va generando una rotacion.
+            //Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
+            base.Update(gameTime);
         }
 
         /// <summary>
@@ -184,29 +190,46 @@ namespace TGC.MonoGame.TP
             }*/
 
             Time+=0.5f;
+            var rotationMatrix = Matrix.CreateRotationZ(Time*0.01f);
             DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
             DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi/2, 0);
-            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(-30, 0, -10)), Camera.View,
-               Camera.Projection);
-            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(30, 0, -10)), Camera.View,
-               Camera.Projection);
             DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), 0, MathHelper.Pi / 2, (float)gameTime.TotalGameTime.TotalSeconds);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), (float)gameTime.TotalGameTime.TotalSeconds, 0, 0);
 
-            DrawGeometry(Box, BoxPosition,0,0,0);
-
             DrawGeometry(Teapot, TeapotPosition, yaw: MathHelper.Pi * -0.5f, pitch: MathHelper.Pi * -0.25f);
+            var escalaPiso = 10f;
+            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f)* Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(new Vector3(-7f, -7f, (escalaPiso * (-1f)) - 2f)), View,
+            Projection);
+            Cube.Draw(rotationMatrix * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(new Vector3(1, -1, 3)), View,
+            Projection);
+            Cube.Draw(rotationMatrix * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(new Vector3(-1, 2, 3)), View,
+            Projection);
+            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f)*Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(-25f,-25f, -escalaPiso), View,
+            Projection);
+            Efecto.Parameters["View"].SetValue(View);
+            Efecto.Parameters["Projection"].SetValue(Projection);
+            Color rojo = Color.Red;
+            Vector3 color = rojo.ToVector3();
+            //Efecto.Parameters["DiffuseColor"].SetValue(color);
+            
 
+            foreach (var mesh in Esfera.Meshes)
+            { 
+                World = mesh.ParentBone.Transform * Matrix.CreateTranslation(SpherePosition)* rotationMatrix * Matrix.CreateScale(0.008f);
+                Efecto.Parameters["World"].SetValue(World);
+                mesh.Draw();
+            }
+            SpherePosition = new Vector3(SpherePosition.X - 1, SpherePosition.Y - 1, SpherePosition.Z);
         }
 
         private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw = 0f, float pitch = 0f, float roll = 0f)
         {
             var effect = geometry.Effect;
 
-            effect.World = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll) * Matrix.CreateTranslation(position);
-            effect.View = Camera.View;
-            effect.Projection = Camera.Projection;
+            effect.World = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll) * Matrix.CreateTranslation(position) * Matrix.CreateScale(0.3f);
+            effect.View = View;
+            effect.Projection = Projection;
 
             geometry.Draw(effect);
         }
