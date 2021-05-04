@@ -48,6 +48,13 @@ namespace TGC.MonoGame.TP
         private Vector3 SpherePosition { get; set; }
         private TorusPrimitive Torus { get; set; }
         private Vector3 TorusPosition { get; set; }
+        private CylinderPrimitive Cylinder { get; set; }
+        private Vector3 CylinderPosition { get; set; }
+        private CubePrimitive Box { get; set; }
+        private Vector3 BoxPosition { get; set; }
+        private float Yaw { get; set; }
+        private float Pitch { get; set; }
+        private float Roll { get; set; }
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -64,18 +71,25 @@ namespace TGC.MonoGame.TP
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
             // Seria hasta aca.
-            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, new Vector3(0, 20, 60), Vector3.Zero);
+            Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 40, 30, 1f);
+
+            Box = new CubePrimitive(GraphicsDevice, 10, Color.DarkBlue, Color.DarkBlue, Color.DarkGray,
+                Color.DarkGray, Color.DarkBlue, Color.DarkGray);
+            BoxPosition = new Vector3(40,10,-20);
 
             Sphere = new SpherePrimitive(GraphicsDevice, 10);
-            SpherePosition = new Vector3(0, 0, 0);
+            SpherePosition = Vector3.Zero;
 
             Torus = new TorusPrimitive(GraphicsDevice, 20,1);
-            TorusPosition = new Vector3(0, -2, -10);
-            /*// Configuramos nuestras matrices de la escena.
+            TorusPosition = Vector3.Zero;
+
+            Cylinder = new CylinderPrimitive(GraphicsDevice,10,5,30);
+            CylinderPosition = new Vector3(-10,0,10);
+            //Configuramos nuestras matrices de la escena.
             World = Matrix.Identity;
             View = Matrix.CreateLookAt(Vector3.UnitZ * 150, Vector3.Zero, Vector3.Up);
             Projection =
-                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);*/
+                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
 
             base.Initialize();
         }
@@ -87,7 +101,7 @@ namespace TGC.MonoGame.TP
         /// </summary>
         protected override void LoadContent()
         {
-            /*// Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
+            // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Cargo el modelo del logo.
@@ -104,7 +118,7 @@ namespace TGC.MonoGame.TP
             foreach (var meshPart in mesh.MeshParts)
                 meshPart.Effect = Effect;
 
-            base.LoadContent();*/
+            base.LoadContent();
         }
 
         /// <summary>
@@ -121,10 +135,17 @@ namespace TGC.MonoGame.TP
                 //Salgo del juego.
                 Exit();
 
-            /*// Basado en el tiempo que paso se va generando una rotacion.
-            Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
+            // Basado en el tiempo que paso se va generando una rotacion.
 
-            base.Update(gameTime);*/
+            var time = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
+            Yaw += time * 0.9f;
+            Pitch += time * 0.8f;
+            Roll += time * 0.4f;
+
+            Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
+            Camera.Update(gameTime);
+
+            base.Update(gameTime);
         }
 
         /// <summary>
@@ -134,22 +155,34 @@ namespace TGC.MonoGame.TP
         protected override void Draw(GameTime gameTime)
         {
             // Aca deberiamos poner toda la logia de renderizado del juego.
-            GraphicsDevice.Clear(Color.BlueViolet);
+            GraphicsDevice.Clear(Color.Black);
 
-            /*// Para dibujar le modelo necesitamos pasarle informacion que el efecto esta esperando.
+            // Para dibujar le modelo necesitamos pasarle informacion que el efecto esta esperando.
             Effect.Parameters["View"].SetValue(View);
             Effect.Parameters["Projection"].SetValue(Projection);
             Effect.Parameters["DiffuseColor"].SetValue(Color.DarkBlue.ToVector3());
             var rotationMatrix = Matrix.CreateRotationY(Rotation);
-
+            var scaleMatrix = Matrix.CreateScale(new Vector3(0.2f,0.2f,0.2f));
+            var translationMatrix = Matrix.CreateTranslation(new Vector3(0f,-31f,50f));
+            
             foreach (var mesh in Model.Meshes)
             {
-                World = mesh.ParentBone.Transform * rotationMatrix;
+                World = mesh.ParentBone.Transform * scaleMatrix * rotationMatrix * translationMatrix;
                 Effect.Parameters["World"].SetValue(World);
                 mesh.Draw();
-            }*/
+            }
+            
             DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
-            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi/2, 0);
+            DrawGeometry(Torus, TorusPosition, 0, Yaw, 0);
+            DrawGeometry(Box, BoxPosition, Yaw + 2f, Pitch + 1f, Roll + 1f);
+            DrawGeometry(Box, BoxPosition - new Vector3(80,0,0), Yaw + 2f, Pitch + 1f, Roll + 1f);
+
+            for(int i = 0; i < 5; i++){
+                for(int j = 0; j < 2; j++){
+                    DrawGeometry(Cylinder, CylinderPosition + new Vector3(j*20,0,0) + new Vector3(0,0,i*20), 0, 0, 0);
+                }
+            }
+            
         }
 
         private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw, float pitch, float roll)
