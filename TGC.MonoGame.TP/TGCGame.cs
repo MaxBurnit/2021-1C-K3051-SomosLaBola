@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -51,10 +51,18 @@ namespace TGC.MonoGame.TP
         private TorusPrimitive Torus { get; set; }
         private Vector3 TorusPosition { get; set; }
         private CylinderPrimitive Cylinder { get; set; }
-        //private Vector3 CylinderPosition { get; set; }
+
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
         
+
+        private TeapotPrimitive Teapot { get; set; }
+        private Vector3 TeapotPosition { get; set; }
+
+        private float Time = 0;
+
+        private Model Cube { get; set; }
+
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -78,11 +86,19 @@ namespace TGC.MonoGame.TP
 
             Torus = new TorusPrimitive(GraphicsDevice, 20,1);
             TorusPosition = new Vector3(0, -2, -10);
+            
+            Time = 0;
 
             Cylinder = new CylinderPrimitive(GraphicsDevice, 20, 5);
 
+
             Box = new CubePrimitive(GraphicsDevice, 10, Color.White);
             BoxPosition = new Vector3(0, -10, 0);
+
+            Teapot = new TeapotPrimitive(GraphicsDevice, 10);
+            TeapotPosition = new Vector3(-15, 10, 0);
+
+
             /*// Configuramos nuestras matrices de la escena.
             World = Matrix.Identity;
             View = Matrix.CreateLookAt(Vector3.UnitZ * 150, Vector3.Zero, Vector3.Up);
@@ -99,6 +115,10 @@ namespace TGC.MonoGame.TP
         /// </summary>
         protected override void LoadContent()
         {
+
+
+            Cube = Content.Load<Model>(ContentFolder3D + "geometries/cube");
+            ((BasicEffect)Cube.Meshes.FirstOrDefault()?.Effects.FirstOrDefault())?.EnableDefaultLighting();
             /*// Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -163,14 +183,25 @@ namespace TGC.MonoGame.TP
                 Effect.Parameters["World"].SetValue(World);
                 mesh.Draw();
             }*/
+
+            Time+=0.5f;
             DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
+            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi/2, 0);
+            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(-30, 0, -10)), Camera.View,
+               Camera.Projection);
+            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(30, 0, -10)), Camera.View,
+               Camera.Projection);
             DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), 0, MathHelper.Pi / 2, (float)gameTime.TotalGameTime.TotalSeconds);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), (float)gameTime.TotalGameTime.TotalSeconds, 0, 0);
+
             DrawGeometry(Box, BoxPosition,0,0,0);
+
+            DrawGeometry(Teapot, TeapotPosition, yaw: MathHelper.Pi * -0.5f, pitch: MathHelper.Pi * -0.25f);
+
         }
 
-        private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw, float pitch, float roll)
+        private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw = 0f, float pitch = 0f, float roll = 0f)
         {
             var effect = geometry.Effect;
 
@@ -187,6 +218,7 @@ namespace TGC.MonoGame.TP
 
         protected override void UnloadContent()
         {
+
             // Libero los recursos.
             Content.Unload();
 
