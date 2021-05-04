@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -52,6 +52,11 @@ namespace TGC.MonoGame.TP
         private TeapotPrimitive Teapot { get; set; }
         private Vector3 TeapotPosition { get; set; }
 
+        private float Time = 0;
+
+        private Model Cube { get; set; }
+
+
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
@@ -74,6 +79,8 @@ namespace TGC.MonoGame.TP
 
             Torus = new TorusPrimitive(GraphicsDevice, 20,1);
             TorusPosition = new Vector3(0, -2, -10);
+            
+            Time = 0;
 
             Cylinder = new CylinderPrimitive(GraphicsDevice, 20, 5);
 
@@ -96,6 +103,10 @@ namespace TGC.MonoGame.TP
         /// </summary>
         protected override void LoadContent()
         {
+
+
+            Cube = Content.Load<Model>(ContentFolder3D + "geometries/cube");
+            ((BasicEffect)Cube.Meshes.FirstOrDefault()?.Effects.FirstOrDefault())?.EnableDefaultLighting();
             /*// Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -157,7 +168,14 @@ namespace TGC.MonoGame.TP
                 Effect.Parameters["World"].SetValue(World);
                 mesh.Draw();
             }*/
+
+            Time+=0.5f;
             DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
+            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi/2, 0);
+            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(-30, 0, -10)), Camera.View,
+               Camera.Projection);
+            Cube.Draw(Matrix.CreateFromYawPitchRoll(MathHelper.Pi / 2 * 0.1f * Time, 0, 0) * Matrix.CreateScale(5f) * Matrix.CreateTranslation(new Vector3(30, 0, -10)), Camera.View,
+               Camera.Projection);
             DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), 0, MathHelper.Pi / 2, (float)gameTime.TotalGameTime.TotalSeconds);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), (float)gameTime.TotalGameTime.TotalSeconds, 0, 0);
@@ -181,6 +199,7 @@ namespace TGC.MonoGame.TP
 
         protected override void UnloadContent()
         {
+
             // Libero los recursos.
             Content.Unload();
 
