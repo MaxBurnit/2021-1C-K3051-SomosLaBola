@@ -51,6 +51,8 @@ namespace TGC.MonoGame.TP
         private TorusPrimitive Torus { get; set; }
         private Vector3 TorusPosition { get; set; }
         private CylinderPrimitive Cylinder { get; set; }
+        private TeapotPrimitive Teapot { get; set; }
+        private Vector3 TeapotPosition { get; set; }
 
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
