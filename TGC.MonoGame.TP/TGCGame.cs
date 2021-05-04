@@ -56,12 +56,9 @@ namespace TGC.MonoGame.TP
 
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
-        
+       
 
-        private TeapotPrimitive Teapot { get; set; }
-        private Vector3 TeapotPosition { get; set; }
-
-        private float Time = 0;
+       private float Time = 0;
 
         private Model Cube { get; set; }
 
