@@ -31,17 +31,13 @@ Afuera del mundo Windows, vas a necesitar la ayudar de [Wine](https://www.winehq
 Los recursos usados se almacenan utilizando [Git LFS](https://git-lfs.github.com), con lo cual antes de clonar el repositorio les conviene tenerlo instalado así es automático el pull o si ya lo tienen pueden hacer ```git lfs pull```.
 
 ## Integrantes
-TGC, Tgcito  |  Apellido, Nombre	
+Foto         |  Apellido, Nombre	
 ------------ | -------------
- | Álvarez Pérez, Mariano Nicolás	
------------- | -------------
- | Maximiliano Emanuel, Barneto	
------------- | -------------
- | Cristian Manuel, Cali	
------------- | -------------
-| Lucas Martin, Cano	
------------- | -------------
- | Ignacio, Fernández
+x            | Álvarez Pérez, Mariano Nicolás	
+x            | Maximiliano Emanuel, Barneto	
+x            | Cristian Manuel, Cali	
+x            | Lucas Martin, Cano	
+x            | Ignacio, Fernández
 
 ## Capturas
 ![screenshot1](https://github.com/tgc-utn/tgc-monogame-tp/blob/master/TGC.MonoGame.TP/Icon.bmp)
