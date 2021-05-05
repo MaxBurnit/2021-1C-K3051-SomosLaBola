@@ -17,7 +17,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 #endregion Using Statements
 
-namespace TGC.MonoGame.Samples.Geometries
+namespace SomosLaBola.MonoGame.Samples.Geometries
 {
     /// <summary>
     ///     Geometric primitive class for drawing toruses.

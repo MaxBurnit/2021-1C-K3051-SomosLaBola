@@ -1,20 +1,24 @@
-﻿using System.Linq;
-using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using TGC.MonoGame.Samples.Cameras;
-using TGC.MonoGame.Samples.Geometries;
-using TGC.MonoGame.Samples.Geometries.Textures;
+using SomosLaBola.MonoGame.Samples.Cameras;
+using SomosLaBola.MonoGame.Samples.Geometries;
+using System;
+using System.Linq;
 
 
-namespace TGC.MonoGame.TP
+namespace SomosLaBola.MonoGame.TP
 {
-    /// <summary>
-    ///     Esta es la clase principal  del juego.
-    ///     Inicialmente puede ser renombrado o copiado para hacer más ejemplos chicos, en el caso de copiar para que se
-    ///     ejecute el nuevo ejemplo deben cambiar la clase que ejecuta Program <see cref="Program.Main()" /> linea 10.
-    /// </summary>
+    public static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            using (var game = new TGCGame())
+                game.Run();
+        }
+    }
+
     public class TGCGame : Game
     {
         public const string ContentFolder3D = "Models/";

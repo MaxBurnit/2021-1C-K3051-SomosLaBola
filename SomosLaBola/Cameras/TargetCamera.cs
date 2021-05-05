@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace TGC.MonoGame.Samples.Cameras
+namespace SomosLaBola.MonoGame.Samples.Cameras
 {
     /// <summary>
     ///     Camera looking at a particular point, assumes the up vector is in y.
