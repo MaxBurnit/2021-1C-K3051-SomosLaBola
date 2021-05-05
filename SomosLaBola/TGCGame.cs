@@ -1,20 +1,24 @@
-﻿using System.Linq;
-using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using TGC.MonoGame.Samples.Cameras;
-using TGC.MonoGame.Samples.Geometries;
-using TGC.MonoGame.Samples.Geometries.Textures;
+using System;
+using System.Linq;
+using SomosLaBola.Cameras;
+using SomosLaBola.Geometries;
 
 
-namespace TGC.MonoGame.TP
+namespace SomosLaBola
 {
-    /// <summary>
-    ///     Esta es la clase principal  del juego.
-    ///     Inicialmente puede ser renombrado o copiado para hacer más ejemplos chicos, en el caso de copiar para que se
-    ///     ejecute el nuevo ejemplo deben cambiar la clase que ejecuta Program <see cref="Program.Main()" /> linea 10.
-    /// </summary>
+    public static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            using (var game = new TGCGame())
+                game.Run();
+        }
+    }
+
     public class TGCGame : Game
     {
         public const string ContentFolder3D = "Models/";
@@ -57,12 +61,12 @@ namespace TGC.MonoGame.TP
 
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
-       
+
         private Vector3 CameraPosition { get; set; }
 
-        private Vector3 CameraUpPosition { get; set;}
+        private Vector3 CameraUpPosition { get; set; }
 
-       private float Time = 0;
+        private float Time = 0;
 
         private Model Cube { get; set; }
 
@@ -83,17 +87,17 @@ namespace TGC.MonoGame.TP
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
             // Seria hasta aca.
-            CameraPosition = new Vector3(15,15,9);
+            CameraPosition = new Vector3(15, 15, 9);
             CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
             CameraUpPosition.Normalize();
-           // Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 55, 15, 0.5f);
+            // Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 55, 15, 0.5f);
 
             Sphere = new SpherePrimitive(GraphicsDevice, 10);
             //SpherePosition = new Vector3(0, 0, 0);
 
-            Torus = new TorusPrimitive(GraphicsDevice, 20,1);
+            Torus = new TorusPrimitive(GraphicsDevice, 20, 1);
             TorusPosition = new Vector3(0, -2, -10);
-            
+
             Time = 0;
 
             Cylinder = new CylinderPrimitive(GraphicsDevice, 20, 5);
@@ -158,10 +162,10 @@ namespace TGC.MonoGame.TP
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 //Salgo del juego.
                 Exit();
-            
+
             //Camera.Update(gameTime);
 
-            
+
             // Basado en el tiempo que paso se va generando una rotacion.
             //Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
             base.Update(gameTime);
@@ -189,34 +193,34 @@ namespace TGC.MonoGame.TP
                 mesh.Draw();
             }*/
 
-            Time+=0.5f;
-            var rotationMatrix = Matrix.CreateRotationZ(Time*0.01f);
+            Time += 0.5f;
+            var rotationMatrix = Matrix.CreateRotationZ(Time * 0.01f);
             DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
-            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi/2, 0);
+            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
             DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), 0, MathHelper.Pi / 2, (float)gameTime.TotalGameTime.TotalSeconds);
             DrawGeometry(Cylinder, new Vector3(10, 5, -5), (float)gameTime.TotalGameTime.TotalSeconds, 0, 0);
 
             DrawGeometry(Teapot, TeapotPosition, yaw: MathHelper.Pi * -0.5f, pitch: MathHelper.Pi * -0.25f);
             var escalaPiso = 10f;
-            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f)* Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(new Vector3(-7f, -7f, (escalaPiso * (-1f)) - 2f)), View,
+            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(new Vector3(-7f, -7f, escalaPiso * -1f - 2f)), View,
             Projection);
             Cube.Draw(rotationMatrix * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(new Vector3(1, -1, 3)), View,
             Projection);
             Cube.Draw(rotationMatrix * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(new Vector3(-1, 2, 3)), View,
             Projection);
-            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f)*Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(-25f,-25f, -escalaPiso), View,
+            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(-25f, -25f, -escalaPiso), View,
             Projection);
             Efecto.Parameters["View"].SetValue(View);
             Efecto.Parameters["Projection"].SetValue(Projection);
             Color rojo = Color.Red;
             Vector3 color = rojo.ToVector3();
             //Efecto.Parameters["DiffuseColor"].SetValue(color);
-            
+
 
             foreach (var mesh in Esfera.Meshes)
-            { 
-                World = mesh.ParentBone.Transform * Matrix.CreateTranslation(SpherePosition)* rotationMatrix * Matrix.CreateScale(0.008f);
+            {
+                World = mesh.ParentBone.Transform * Matrix.CreateTranslation(SpherePosition) * rotationMatrix * Matrix.CreateScale(0.008f);
                 Efecto.Parameters["World"].SetValue(World);
                 mesh.Draw();
             }
