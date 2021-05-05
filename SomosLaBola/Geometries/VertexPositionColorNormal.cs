@@ -16,7 +16,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 #endregion Using Statements
 
-namespace SomosLaBola.MonoGame.Samples.Geometries
+namespace SomosLaBola.Geometries
 {
     /// <summary>
     ///     Custom vertex type for vertices that have just a position a color and a normal,

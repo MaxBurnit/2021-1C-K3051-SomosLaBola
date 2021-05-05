@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace SomosLaBola.MonoGame.Samples.Geometries.Textures
+namespace SomosLaBola.Geometries.Textures
 {
     /// <summary>
     ///     Textured 3D box or cube.

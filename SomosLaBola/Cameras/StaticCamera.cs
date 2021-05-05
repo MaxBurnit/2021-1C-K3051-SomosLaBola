@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace SomosLaBola.MonoGame.Samples.Cameras
+namespace SomosLaBola.Cameras
 {
     /// <summary>
     ///     Static camera without restrictions, where each component is configured and nothing is inferred.

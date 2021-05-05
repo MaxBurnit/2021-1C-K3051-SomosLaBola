@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace SomosLaBola.MonoGame.Samples.Geometries
+namespace SomosLaBola.Geometries
 {
     public class FullScreenQuad
     {

@@ -18,7 +18,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 #endregion Using Statements
 
-namespace SomosLaBola.MonoGame.Samples.Geometries
+namespace SomosLaBola.Geometries
 {
     /// <summary>
     ///     Base class for simple geometric primitive models. This provides a vertex buffer, an index buffer, plus methods for

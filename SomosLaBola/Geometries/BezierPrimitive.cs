@@ -17,7 +17,7 @@ using Microsoft.Xna.Framework;
 
 #endregion Using Statements
 
-namespace SomosLaBola.MonoGame.Samples.Geometries
+namespace SomosLaBola.Geometries
 {
     /// <summary>
     ///     Base class for primitives that are made out of cubic bezier patches (a type of curved surface).

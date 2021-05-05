@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SomosLaBola.MonoGame.Samples.Geometries
+namespace SomosLaBola.Geometries
 {
     public class Arrow
     {

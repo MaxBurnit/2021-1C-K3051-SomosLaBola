@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace SomosLaBola.MonoGame.Samples.Cameras
+namespace SomosLaBola.Cameras
 {
     /// <summary>
     ///     Camera with simple movement.
