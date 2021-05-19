@@ -20,6 +20,7 @@ namespace TGC.MonoGame.TP
         public const string ContentFolderSounds = "Sounds/";
         public const string ContentFolderSpriteFonts = "SpriteFonts/";
         public const string ContentFolderTextures = "Textures/";
+        public const string ContentFolderGeometries = "3D/geometries/";
 
         /// <summary>
         ///     Constructor del juego.
@@ -44,6 +45,10 @@ namespace TGC.MonoGame.TP
         private Matrix World { get; set; }
         private Matrix View { get; set; }
         private Matrix Projection { get; set; }
+        public Vector3 Position;
+        public Vector3 DesiredLookAt;
+        public Vector3 ForwardDirection;
+
         private SpherePrimitive Sphere { get; set; }
         private Vector3 SpherePosition { get; set; }
         private TorusPrimitive Torus { get; set; }
@@ -52,6 +57,7 @@ namespace TGC.MonoGame.TP
         private Vector3 CylinderPosition { get; set; }
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
+
         private float Yaw { get; set; }
         private float Pitch { get; set; }
         private float Roll { get; set; }
@@ -71,7 +77,13 @@ namespace TGC.MonoGame.TP
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
             // Seria hasta aca.
-            Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 40, 30, 1f);
+
+            DesiredLookAt = new Vector3(0,0,3);
+            Position = new Vector3(0,0,150);
+            ForwardDirection = Vector3.Forward;
+
+            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, Position, DesiredLookAt,
+                5, 5000);
 
             Box = new CubePrimitive(GraphicsDevice, 10, Color.DarkBlue, Color.DarkBlue, Color.DarkGray,
                 Color.DarkGray, Color.DarkBlue, Color.DarkGray);
@@ -105,7 +117,7 @@ namespace TGC.MonoGame.TP
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Cargo el modelo del logo.
-            Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
+            Model = Content.Load<Model>(ContentFolderGeometries + "sphere");
 
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
@@ -135,15 +147,48 @@ namespace TGC.MonoGame.TP
                 //Salgo del juego.
                 Exit();
 
-            // Basado en el tiempo que paso se va generando una rotacion.
-
             var time = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
             Yaw += time * 0.9f;
             Pitch += time * 0.8f;
             Roll += time * 0.4f;
 
             Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
-            Camera.Update(gameTime);
+
+            var keyboardState = Keyboard.GetState();
+
+            // Check for input to rotate the camera.
+            var turn = 0f;
+            var angle = 1f;
+
+            if (keyboardState.IsKeyDown(Keys.A))
+                turn += time * angle;
+
+            if (keyboardState.IsKeyDown(Keys.D))
+                turn -= time * angle;
+
+            
+            var RightDirection = Vector3.Cross(Vector3.Up, ForwardDirection);
+            var flatFront = Vector3.Cross(RightDirection, Vector3.Up);
+
+            var turnMatrix = Matrix.CreateFromAxisAngle(Vector3.Up, turn);
+
+            var tiltedFront = Vector3.TransformNormal(ForwardDirection,  turnMatrix);
+            
+
+            // Check angle so we can't flip over.
+            if (Vector3.Dot(tiltedFront, flatFront) > 0.001f) ForwardDirection = Vector3.Normalize(tiltedFront);
+
+            var Speed = 50;
+
+            // Check for input to move the camera around.
+            if (keyboardState.IsKeyDown(Keys.W))
+                Position += ForwardDirection * time * Speed;
+
+            if (keyboardState.IsKeyDown(Keys.S))
+                Position -= ForwardDirection * time * Speed;
+
+            Camera.View = Matrix.CreateLookAt(Position, Position + ForwardDirection, Vector3.Up);
+            Camera.Projection = Projection;
 
             base.Update(gameTime);
         }
@@ -161,9 +206,9 @@ namespace TGC.MonoGame.TP
             Effect.Parameters["View"].SetValue(View);
             Effect.Parameters["Projection"].SetValue(Projection);
             Effect.Parameters["DiffuseColor"].SetValue(Color.DarkBlue.ToVector3());
-            var rotationMatrix = Matrix.CreateRotationY(Rotation);
-            var scaleMatrix = Matrix.CreateScale(new Vector3(0.2f,0.2f,0.2f));
-            var translationMatrix = Matrix.CreateTranslation(new Vector3(0f,-31f,50f));
+            var rotationMatrix = Matrix.CreateRotationX(-Rotation);
+            var scaleMatrix = Matrix.CreateScale(new Vector3(0.02f,0.02f,0.02f));
+            var translationMatrix = Matrix.CreateTranslation(new Vector3(0f,-5f,120f));
             
             foreach (var mesh in Model.Meshes)
             {
@@ -192,7 +237,6 @@ namespace TGC.MonoGame.TP
             effect.World = Matrix.CreateFromYawPitchRoll(yaw, pitch, roll) * Matrix.CreateTranslation(position);
             effect.View = Camera.View;
             effect.Projection = Camera.Projection;
-
             geometry.Draw(effect);
         }
 
