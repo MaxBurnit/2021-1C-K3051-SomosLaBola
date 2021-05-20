@@ -93,17 +93,6 @@ namespace SomosLaBola
             // Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 55, 15, 0.5f);
 
             Sphere = new SpherePrimitive(GraphicsDevice, 10);
-            //SpherePosition = new Vector3(0, 0, 0);
-
-            Torus = new TorusPrimitive(GraphicsDevice, 20, 1);
-            TorusPosition = new Vector3(0, -2, -10);
-
-            Time = 0;
-
-            Cylinder = new CylinderPrimitive(GraphicsDevice, 20, 5);
-
-            Teapot = new TeapotPrimitive(GraphicsDevice, 10);
-            TeapotPosition = new Vector3(-15, 10, 0);
 
 
             // Configuramos nuestras matrices de la escena.
@@ -124,9 +113,6 @@ namespace SomosLaBola
         protected override void LoadContent()
         {
 
-
-            Cube = Content.Load<Model>(ContentFolder3D + "geometries/cube");
-            ((BasicEffect)Cube.Meshes.FirstOrDefault()?.Effects.FirstOrDefault())?.EnableDefaultLighting();
 
             Esfera = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
             // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
@@ -192,39 +178,8 @@ namespace SomosLaBola
                 Effect.Parameters["World"].SetValue(World);
                 mesh.Draw();
             }*/
-
-            Time += 0.5f;
-            var rotationMatrix = Matrix.CreateRotationZ(Time * 0.01f);
             DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
-            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
-            DrawGeometry(Torus, TorusPosition, 0, MathHelper.Pi / 2, 0);
-            DrawGeometry(Cylinder, new Vector3(10, 5, -5), 0, MathHelper.Pi / 2, (float)gameTime.TotalGameTime.TotalSeconds);
-            DrawGeometry(Cylinder, new Vector3(10, 5, -5), (float)gameTime.TotalGameTime.TotalSeconds, 0, 0);
-
-            DrawGeometry(Teapot, TeapotPosition, yaw: MathHelper.Pi * -0.5f, pitch: MathHelper.Pi * -0.25f);
-            var escalaPiso = 10f;
-            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(new Vector3(-7f, -7f, escalaPiso * -1f - 2f)), View,
-            Projection);
-            Cube.Draw(rotationMatrix * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(new Vector3(1, -1, 3)), View,
-            Projection);
-            Cube.Draw(rotationMatrix * Matrix.CreateScale(0.5f) * Matrix.CreateTranslation(new Vector3(-1, 2, 3)), View,
-            Projection);
-            Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escalaPiso) * Matrix.CreateTranslation(-25f, -25f, -escalaPiso), View,
-            Projection);
-            Efecto.Parameters["View"].SetValue(View);
-            Efecto.Parameters["Projection"].SetValue(Projection);
-            Color rojo = Color.Red;
-            Vector3 color = rojo.ToVector3();
-            //Efecto.Parameters["DiffuseColor"].SetValue(color);
-
-
-            foreach (var mesh in Esfera.Meshes)
-            {
-                World = mesh.ParentBone.Transform * Matrix.CreateTranslation(SpherePosition) * rotationMatrix * Matrix.CreateScale(0.008f);
-                Efecto.Parameters["World"].SetValue(World);
-                mesh.Draw();
-            }
-            SpherePosition = new Vector3(SpherePosition.X - 1, SpherePosition.Y - 1, SpherePosition.Z);
+           
         }
 
         private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw = 0f, float pitch = 0f, float roll = 0f)
