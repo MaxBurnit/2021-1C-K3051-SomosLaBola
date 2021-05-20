@@ -60,6 +60,7 @@ namespace SomosLaBola
         private Vector3 TeapotPosition { get; set; }
 
         private CubePrimitive Box { get; set; }
+        public Matrix FloorWorld { get; private set; }
         private Vector3 BoxPosition { get; set; }
 
         private Vector3 CameraPosition { get; set; }
@@ -87,20 +88,7 @@ namespace SomosLaBola
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
             // Seria hasta aca.
-            CameraPosition = new Vector3(15, 15, 9);
-            CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
-            CameraUpPosition.Normalize();
-            // Camera = new SimpleCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.UnitZ * 55, 15, 0.5f);
-
-            Sphere = new SpherePrimitive(GraphicsDevice, 10);
-
-
-            // Configuramos nuestras matrices de la escena.
-            SpherePosition = Vector3.Zero;
-            World = Matrix.Identity;
-            View = Matrix.CreateLookAt(CameraPosition, SpherePosition, CameraUpPosition);
-            Projection =
-                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
+            InitializeContentM();
 
             base.Initialize();
         }
@@ -114,23 +102,9 @@ namespace SomosLaBola
         {
 
 
-            Esfera = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
-            // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
-            SpriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // Cargo el modelo del logo.
-            //Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
-
-            // Cargo un efecto basico propio declarado en el Content pipeline.
-            // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
-            Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
-
-            // Asigno el efecto que cargue a cada parte del mesh.
-            // Un modelo puede tener mas de 1 mesh internamente.
-            foreach (var mesh in Esfera.Meshes)
-                // Un mesh puede tener mas de 1 mesh part (cada 1 puede tener su propio efecto).
-                foreach (var meshPart in mesh.MeshParts)
-                    meshPart.Effect = Efecto;
+            LoadContentM();
+           
+           
 
             base.LoadContent();
         }
@@ -178,7 +152,7 @@ namespace SomosLaBola
                 Effect.Parameters["World"].SetValue(World);
                 mesh.Draw();
             }*/
-            DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
+            DrawContentM();
            
         }
 
@@ -191,6 +165,49 @@ namespace SomosLaBola
             effect.Projection = Projection;
 
             geometry.Draw(effect);
+        }
+
+        private void InitializeContentM()
+        {
+            CameraPosition = new Vector3(15, 15, 9);
+            CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
+            CameraUpPosition.Normalize();
+            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition, Vector3.Zero);
+
+            Sphere = new SpherePrimitive(GraphicsDevice, 10);
+            Box = new CubePrimitive(GraphicsDevice);
+            BoxPosition = new Vector3(0, -6, 0);
+            FloorWorld = Matrix.CreateScale(30f, 0.001f, 30f) * Matrix.CreateTranslation(BoxPosition);
+
+            // Configuramos nuestras matrices de la escena.
+            SpherePosition = Vector3.Zero;
+            World = Matrix.Identity;
+            View = Matrix.CreateLookAt(CameraPosition, SpherePosition, CameraUpPosition);
+            Projection =
+                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
+        }
+
+        private void LoadContentM()
+        {
+            // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
+            SpriteBatch = new SpriteBatch(GraphicsDevice);
+
+            // Cargo el modelo del logo.
+            //Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
+
+            // Cargo un efecto basico propio declarado en el Content pipeline.
+            // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
+            Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
+
+            // Asigno el efecto que cargue a cada parte del mesh.
+            // Un modelo puede tener mas de 1 mesh internamente.
+        }
+
+        private void DrawContentM()
+        {
+            DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
+
+            Box.Draw(FloorWorld, Camera.View, Camera.Projection);
         }
 
         /// <summary>
