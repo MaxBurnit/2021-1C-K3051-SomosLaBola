@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using SomosLaBola.Cameras;
 using SomosLaBola.Geometries;
+using TGC.MonoGame.Samples.Collisions;
+using BepuPhysics;
 
 
 namespace SomosLaBola
@@ -42,37 +44,55 @@ namespace SomosLaBola
             // Hace que el mouse sea visible.
             IsMouseVisible = true;
         }
+
+        //Camera
         private Camera Camera { get; set; }
+        private Vector3 CameraPosition { get; set; }
+        private Vector3 CameraUpPosition { get; set; }
+
+        //Graphics
         private GraphicsDeviceManager Graphics { get; }
         private SpriteBatch SpriteBatch { get; set; }
+
+        //Models
         private Model Model { get; set; }
         private Effect Efecto { get; set; }
         private float Rotation { get; set; }
-        private Matrix World { get; set; }
-        private Matrix View { get; set; }
-        private Matrix Projection { get; set; }
-        private SpherePrimitive Sphere { get; set; }
+        private Model Cube { get; set; }
+        private Model Sphere { get; set; }
         private Vector3 SpherePosition { get; set; }
+        public Matrix SphereWorld { get; private set; }
         private TorusPrimitive Torus { get; set; }
         private Vector3 TorusPosition { get; set; }
         private CylinderPrimitive Cylinder { get; set; }
         private TeapotPrimitive Teapot { get; set; }
         private Vector3 TeapotPosition { get; set; }
-
         private CubePrimitive Box { get; set; }
-        public Matrix FloorWorld { get; private set; }
         private Vector3 BoxPosition { get; set; }
 
-        private Vector3 CameraPosition { get; set; }
+        //Matrix
+        private Matrix World { get; set; }
+        private Matrix View { get; set; }
+        private Matrix Projection { get; set; }
+        public Matrix FloorWorld { get; set; }
+        private Vector3 BallAcceleration { get; set; }
+        private Vector3 BallVelocity { get; set; }
 
-        private Vector3 CameraUpPosition { get; set; }
+        //Booleano para saber si la bola esta en el suelo
+        private bool OnGround { get; set; }
 
-        private float Time = 0;
 
-        private Model Cube { get; set; }
 
-        private Model Esfera { get; set; }
+        //Colliders
+        private BoundingBox Collider{ get; set; }
+        private BoundingSphere _ballSphere;
 
+        //constants
+        private const float BallSideSpeed = 100f;
+        private const float BallJumpSpeed = 150f;
+        private const float Gravity = 350f;
+        private const float BallRotatingVelocity = 0.06f;
+        private const float EPSILON = 0.00001f;
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
@@ -117,6 +137,20 @@ namespace SomosLaBola
         protected override void Update(GameTime gameTime)
         {
             // Aca deberiamos poner toda la logica de actualizacion del juego.
+            var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
+            // Add the Acceleration to our Velocity
+            // Multiply by the deltaTime to have the Position affected by deltaTime * deltaTime
+            // https://gafferongames.com/post/integration_basics/
+            BallVelocity += BallAcceleration * deltaTime;
+
+            // Scale the velocity by deltaTime
+            var scaledVelocity = BallVelocity * deltaTime;
+
+            SolveVerticalMovement(scaledVelocity);
+
+            SpherePosition = _ballSphere.Center;
+
+            SphereWorld = Matrix.CreateTranslation(SpherePosition) * Matrix.CreateScale(0.02f);
 
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -130,6 +164,25 @@ namespace SomosLaBola
             //Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
             base.Update(gameTime);
         }
+
+        private void SolveVerticalMovement(Vector3 scaledVelocity)
+        {
+            // If the Robot has vertical velocity
+            if (scaledVelocity.Y == 0f)
+                return;
+
+            // Start by moving the Sphere
+            _ballSphere.Center += Vector3.Up * scaledVelocity.Y;
+            // Set the OnGround flag on false, update it later if we find a collision
+            OnGround = false;
+
+
+            
+
+
+
+        }
+            
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
@@ -174,17 +227,25 @@ namespace SomosLaBola
             CameraUpPosition.Normalize();
             Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition, Vector3.Zero);
 
-            Sphere = new SpherePrimitive(GraphicsDevice, 10);
             Box = new CubePrimitive(GraphicsDevice);
             BoxPosition = new Vector3(0, -6, 0);
             FloorWorld = Matrix.CreateScale(30f, 0.001f, 30f) * Matrix.CreateTranslation(BoxPosition);
 
             // Configuramos nuestras matrices de la escena.
             SpherePosition = Vector3.Zero;
+            SphereWorld = Matrix.CreateScale(0.02f);
             World = Matrix.Identity;
             View = Matrix.CreateLookAt(CameraPosition, SpherePosition, CameraUpPosition);
             Projection =
                 Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
+
+            // Instantiate a BoundingBox for the Floor. Note that the height is almost zero
+            Collider = new BoundingBox(new Vector3(-30f, -0.001f, -30f), new Vector3(30f, 0f, 30f));
+
+            BallAcceleration = Vector3.Down * Gravity;
+
+            // Initialize the Velocity as zero
+            BallVelocity = Vector3.Zero;
         }
 
         private void LoadContentM()
@@ -195,25 +256,44 @@ namespace SomosLaBola
             // Cargo el modelo del logo.
             //Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
 
+            Sphere = Content.Load<Model>(ContentFolder3D + "geometries/Sphere");
+            EnableDefaultLighting(Sphere);
+
+
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
             Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
+            _ballSphere = BoundingVolumesExtensions.CreateSphereFrom(Sphere);
+            _ballSphere.Center = SpherePosition;
+            _ballSphere.Radius = 1f;
+
 
             // Asigno el efecto que cargue a cada parte del mesh.
             // Un modelo puede tener mas de 1 mesh internamente.
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
         }
 
         private void DrawContentM()
         {
-            DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
+            //DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
+
+            Sphere.Draw(SphereWorld, Camera.View, Camera.Projection);
 
             Box.Draw(FloorWorld, Camera.View, Camera.Projection);
+
+            //Draw boxes
+            //Game.Gizmos.DrawSphere(_ballSpg.Center, _tankSphere.Radius * Vector3.One, TouchingTank ? Color.Orange : Color.Purple);
         }
 
         /// <summary>
         ///     Libero los recursos que se cargaron en el juego.
         /// </summary>
-
+        private void EnableDefaultLighting(Model model)
+        {
+            foreach (var mesh in model.Meshes)
+                ((BasicEffect)mesh.Effects.FirstOrDefault())?.EnableDefaultLighting();
+        }
         protected override void UnloadContent()
         {
 

@@ -6,8 +6,9 @@
     <TieredCompilation>false</TieredCompilation>
   </PropertyGroup>
   <PropertyGroup>
+    <ApplicationIcon></ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <StartupObject></StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Icon.ico" />

@@ -31,7 +31,7 @@ namespace SomosLaBola.Geometries
         /// <param name="diameter">Diameter of the sphere.</param>
         /// <param name="tessellation">The number of times the surface triangles are subdivided.</param>
         public SpherePrimitive(GraphicsDevice graphicsDevice, float diameter = 1, int tessellation = 16) : this(
-            graphicsDevice, diameter, tessellation, Color.White)
+            graphicsDevice, diameter, tessellation, Color.Red)
         {
         }
 
