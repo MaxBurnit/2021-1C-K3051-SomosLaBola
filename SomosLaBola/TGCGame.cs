@@ -9,8 +9,10 @@ using TGC.MonoGame.Samples.Collisions;
 using TGC.MonoGame.Samples.Viewer;
 using BepuPhysics;
 using BepuUtilities.Memory;
-
-
+using System.Collections.Generic;
+using TGC.MonoGame.Samples.Physics.Bepu;
+using NumericVector3 = System.Numerics.Vector3;
+using BepuPhysics.Collidables;
 
 namespace SomosLaBola
 {
@@ -52,6 +54,8 @@ namespace SomosLaBola
 
         //Physics
         private BufferPool BufferPool { get; set; }
+        public List<float> Radii { get; private set; }
+        public List<BodyHandle> SphereHandles { get; private set; }
         private Simulation Simulation { get; set; }
         //private SimpleThreadDispatcher ThreadDispatcher { get; set; }
 
@@ -71,6 +75,7 @@ namespace SomosLaBola
         private float Rotation { get; set; }
         private Model Cube { get; set; }
         private Model Sphere { get; set; }
+
         private Vector3 SpherePosition { get; set; }
         public Matrix SphereWorld { get; private set; }
         private TorusPrimitive Torus { get; set; }
@@ -89,6 +94,7 @@ namespace SomosLaBola
         private Vector3 BallAcceleration { get; set; }
         private Vector3 BallVelocity { get; set; }
 
+        public List<Matrix> SpheresWorld { get; private set; }
         //Booleano para saber si la bola esta en el suelo
         private bool OnGround { get; set; }
 
@@ -96,6 +102,9 @@ namespace SomosLaBola
 
         //Colliders
         private BoundingBox Collider{ get; set; }
+        public SimpleThreadDispatcher ThreadDispatcher { get; private set; }
+        
+
         private BoundingSphere _ballSphere;
 
         //constants
@@ -151,17 +160,6 @@ namespace SomosLaBola
         {
             // Aca deberiamos poner toda la logica de actualizacion del juego.
             var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
-            // Add the Acceleration to our Velocity
-            // Multiply by the deltaTime to have the Position affected by deltaTime * deltaTime
-            // https://gafferongames.com/post/integration_basics/
-            BallVelocity += BallAcceleration * deltaTime;
-
-            // Scale the velocity by deltaTime
-            var scaledVelocity = BallVelocity * deltaTime;
-
-            //SolveVerticalMovement(scaledVelocity);
-
-            SpherePosition = _ballSphere.Center;
 
             SphereWorld = Matrix.CreateTranslation(SpherePosition) * Matrix.CreateScale(0.02f);
 
@@ -171,25 +169,32 @@ namespace SomosLaBola
                 Exit();
 
             //Camera.Update(gameTime);
-
-
+            UpdatePhysics();
             // Basado en el tiempo que paso se va generando una rotacion.
             //Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
             base.Update(gameTime);
         }
 
-        private void SolveVerticalMovement(Vector3 scaledVelocity)
+        private void UpdatePhysics()
         {
-            // If the Robot has vertical velocity
-            if (scaledVelocity.Y == 0f)
-                return;
+            //Physics
+            Simulation.Timestep(1 / 60f, ThreadDispatcher);
+            SpheresWorld.Clear();
+            var spheresHandleCount = SphereHandles.Count;
 
-            // Start by moving the Sphere
-            _ballSphere.Center += Vector3.Up * scaledVelocity.Y;
-            // Set the OnGround flag on false, update it later if we find a collision
-            OnGround = false;
-
+            for (var index = 0; index < spheresHandleCount; index++)
+            {
+                var pose = Simulation.Bodies.GetBodyReference(SphereHandles[index]).Pose;
+                var position = pose.Position;
+                var quaternion = pose.Orientation;
+                var world = Matrix.CreateScale(Radii[index]) *
+                            Matrix.CreateFromQuaternion(new Quaternion(quaternion.X, quaternion.Y, quaternion.Z,
+                                quaternion.W)) *
+                            Matrix.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
+                SpheresWorld.Add(world);
+            }
         }
+
             
 
         /// <summary>
@@ -247,13 +252,6 @@ namespace SomosLaBola
             Projection =
                 Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
 
-            // Instantiate a BoundingBox for the Floor. Note that the height is almost zero
-            Collider = new BoundingBox(new Vector3(-30f, -0.001f, -30f), new Vector3(30f, 0f, 30f));
-
-            BallAcceleration = Vector3.Down * Gravity;
-
-            // Initialize the Velocity as zero
-            BallVelocity = Vector3.Zero;
         }
 
         private void LoadContentM()
@@ -265,36 +263,68 @@ namespace SomosLaBola
             //Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
 
             Sphere = Content.Load<Model>(ContentFolder3D + "geometries/Sphere");
+            
             EnableDefaultLighting(Sphere);
 
 
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
             Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
-            _ballSphere = BoundingVolumesExtensions.CreateSphereFrom(Sphere);
-            _ballSphere.Center = SpherePosition;
-            _ballSphere.Radius = 1f;
-
-
             // Asigno el efecto que cargue a cada parte del mesh.
             // Un modelo puede tener mas de 1 mesh internamente.
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
+            LoadPhysics();
+            
+
+        }
+
+        private void LoadPhysics()
+        {
+            //Physics
+            BufferPool = new BufferPool();
+
+            Radii = new List<float>();
+
+            SphereHandles = new List<BodyHandle>();
+
+            var targetThreadCount = Math.Max(1,
+               Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+            ThreadDispatcher = new SimpleThreadDispatcher(targetThreadCount);
+
+            Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(),
+               new PoseIntegratorCallbacks(new NumericVector3(0, -10, 0)), new PositionFirstTimestepper());
+
+            /*Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -0.5f, 0),
+                new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 1, 2000)), 0.1f)));*/
+
+            //Esfera
+            SpheresWorld = new List<Matrix>();
+
+            var radius = 0.02f;
+            var sphereShape = new Sphere();
+            sphereShape.ComputeInertia(0.4f, out var sphereInertia);
+            var sphereIndex = Simulation.Shapes.Add(sphereShape);
+            var position = new NumericVector3(0, 0, 0);
+
+            var bodyDescription = BodyDescription.CreateDynamic(position, sphereInertia,
+                new CollidableDescription(sphereIndex, 0.1f)
+                , new BodyActivityDescription(0.1f));
+
+            var bodyHandle = Simulation.Bodies.Add(bodyDescription);
+
+            SphereHandles.Add(bodyHandle);
+
+            Radii.Add(radius);
         }
 
         private void DrawContentM()
-        {
-            //DrawGeometry(Sphere, SpherePosition, 0, 0, 0);
-
-            Sphere.Draw(SphereWorld, Camera.View, Camera.Projection);
+        { 
 
             Box.Draw(FloorWorld, Camera.View, Camera.Projection);
 
-            //Draw boxes
-            Game.Gizmos.DrawSphere(_ballSphere.Center,new Vector3(10,10,10),Color.Red) ;
-            
-            
-            
+            SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
+
         }
 
         /// <summary>
