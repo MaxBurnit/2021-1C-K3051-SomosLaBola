@@ -6,7 +6,10 @@ using System.Linq;
 using SomosLaBola.Cameras;
 using SomosLaBola.Geometries;
 using TGC.MonoGame.Samples.Collisions;
+using TGC.MonoGame.Samples.Viewer;
 using BepuPhysics;
+using BepuUtilities.Memory;
+
 
 
 namespace SomosLaBola
@@ -44,6 +47,14 @@ namespace SomosLaBola
             // Hace que el mouse sea visible.
             IsMouseVisible = true;
         }
+
+        protected new TGCViewer Game { get; }
+
+        //Physics
+        private BufferPool BufferPool { get; set; }
+        private Simulation Simulation { get; set; }
+        //private SimpleThreadDispatcher ThreadDispatcher { get; set; }
+
 
         //Camera
         private Camera Camera { get; set; }
@@ -97,6 +108,8 @@ namespace SomosLaBola
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
         /// </summary>
+        /// 
+
         protected override void Initialize()
         {
             // La logica de inicializacion que no depende del contenido se recomienda poner en este metodo.
@@ -146,7 +159,7 @@ namespace SomosLaBola
             // Scale the velocity by deltaTime
             var scaledVelocity = BallVelocity * deltaTime;
 
-            SolveVerticalMovement(scaledVelocity);
+            //SolveVerticalMovement(scaledVelocity);
 
             SpherePosition = _ballSphere.Center;
 
@@ -175,11 +188,6 @@ namespace SomosLaBola
             _ballSphere.Center += Vector3.Up * scaledVelocity.Y;
             // Set the OnGround flag on false, update it later if we find a collision
             OnGround = false;
-
-
-            
-
-
 
         }
             
@@ -283,7 +291,10 @@ namespace SomosLaBola
             Box.Draw(FloorWorld, Camera.View, Camera.Projection);
 
             //Draw boxes
-            //Game.Gizmos.DrawSphere(_ballSpg.Center, _tankSphere.Radius * Vector3.One, TouchingTank ? Color.Orange : Color.Purple);
+            Game.Gizmos.DrawSphere(_ballSphere.Center,new Vector3(10,10,10),Color.Red) ;
+            
+            
+            
         }
 
         /// <summary>
