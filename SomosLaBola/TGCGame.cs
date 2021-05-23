@@ -50,7 +50,9 @@ namespace SomosLaBola
             IsMouseVisible = true;
         }
 
+ 
         protected new TGCViewer Game { get; }
+        private SpriteFont SpriteFont { get; set; }
 
         //Physics
         private BufferPool BufferPool { get; set; }
@@ -61,7 +63,7 @@ namespace SomosLaBola
 
 
         //Camera
-        private Camera Camera { get; set; }
+        private TargetCamera Camera { get; set; }
         private Vector3 CameraPosition { get; set; }
         private Vector3 CameraUpPosition { get; set; }
 
@@ -103,16 +105,10 @@ namespace SomosLaBola
         //Colliders
         private BoundingBox Collider{ get; set; }
         public SimpleThreadDispatcher ThreadDispatcher { get; private set; }
-        
+        public Vector3 PositionE { get; private set; }
 
-        private BoundingSphere _ballSphere;
 
-        //constants
-        private const float BallSideSpeed = 100f;
-        private const float BallJumpSpeed = 150f;
-        private const float Gravity = 350f;
-        private const float BallRotatingVelocity = 0.06f;
-        private const float EPSILON = 0.00001f;
+
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
@@ -132,6 +128,8 @@ namespace SomosLaBola
             // Seria hasta aca.
             InitializeContentM();
 
+           
+
             base.Initialize();
         }
 
@@ -143,7 +141,7 @@ namespace SomosLaBola
         protected override void LoadContent()
         {
 
-
+            SpriteFont = Content.Load<SpriteFont>(ContentFolderSpriteFonts + "Arial");
             LoadContentM();
            
            
@@ -162,6 +160,12 @@ namespace SomosLaBola
             var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
 
             SphereWorld = Matrix.CreateTranslation(SpherePosition) * Matrix.CreateScale(0.02f);
+
+            //Camera.Position = PositionE - new Vector3(100, 0, 0);
+
+            Camera.TargetPosition = PositionE;
+
+            Camera.BuildView();
 
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -187,11 +191,13 @@ namespace SomosLaBola
                 var pose = Simulation.Bodies.GetBodyReference(SphereHandles[index]).Pose;
                 var position = pose.Position;
                 var quaternion = pose.Orientation;
-                var world = Matrix.CreateScale(Radii[index]) *
+                var world = Matrix.CreateScale(0.3f) *
                             Matrix.CreateFromQuaternion(new Quaternion(quaternion.X, quaternion.Y, quaternion.Z,
                                 quaternion.W)) *
                             Matrix.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
                 SpheresWorld.Add(world);
+                PositionE = new Vector3(position.X, position.Y, position.Z);
+                
             }
         }
 
@@ -235,14 +241,16 @@ namespace SomosLaBola
 
         private void InitializeContentM()
         {
-            CameraPosition = new Vector3(15, 15, 9);
+            CameraPosition = new Vector3(15, 150, 9);
             CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
             CameraUpPosition.Normalize();
             Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition, Vector3.Zero);
 
+            
+
             Box = new CubePrimitive(GraphicsDevice);
-            BoxPosition = new Vector3(0, -10, 0);
-            FloorWorld = Matrix.CreateScale(30f, 0.001f, 30f) * Matrix.CreateTranslation(BoxPosition);
+            BoxPosition = new Vector3(0, -20, 0);
+            FloorWorld = Matrix.CreateScale(200f, 0.1f, 200f) * Matrix.CreateTranslation(BoxPosition);
 
             // Configuramos nuestras matrices de la escena.
             SpherePosition = Vector3.Zero;
@@ -293,21 +301,22 @@ namespace SomosLaBola
             ThreadDispatcher = new SimpleThreadDispatcher(targetThreadCount);
 
             Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(),
-               new PoseIntegratorCallbacks(new NumericVector3(0, -1, 0)), new PositionFirstTimestepper());
+               new PoseIntegratorCallbacks(new NumericVector3(0, -40, 0)), new PositionFirstTimestepper());
 
-            Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -10, 0),
-                new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 1, 2000)), 1f)));
+            Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0),
+                new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 10, 2000)), 0.1f)));
 
             //Esfera
             SpheresWorld = new List<Matrix>();
 
-            var radius = 0.02f;
-            var sphereShape = new Sphere();
-            sphereShape.ComputeInertia(0.4f, out var sphereInertia);
-            var sphereIndex = Simulation.Shapes.Add(sphereShape);
+            var radius = 0.03f;
+            var sphereShape = new Sphere(radius);
+            //sphereShape.ComputeInertia(0.4f, out var sphereInertia);
+            //var sphereIndex = Simulation.Shapes.Add(sphereShape);
             var position = new NumericVector3(0, 0, 0);
 
-            var bodyDescription = BodyDescription.CreateConvexDynamic(position, radius * radius * radius, Simulation.Shapes, sphereShape);
+            var bodyDescription = BodyDescription.CreateConvexDynamic(position,radius * radius * radius, 
+                Simulation.Shapes,sphereShape);
 
             var bodyHandle = Simulation.Bodies.Add(bodyDescription);
 
@@ -322,6 +331,12 @@ namespace SomosLaBola
             Box.Draw(FloorWorld, Camera.View, Camera.Projection);
 
             SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
+
+            
+
+            SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
+            SpriteBatch.DrawString(SpriteFont , PositionE.ToString() , new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
+            SpriteBatch.End();
 
         }
 
