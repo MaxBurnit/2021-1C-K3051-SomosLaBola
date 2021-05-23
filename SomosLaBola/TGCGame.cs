@@ -241,7 +241,7 @@ namespace SomosLaBola
             Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition, Vector3.Zero);
 
             Box = new CubePrimitive(GraphicsDevice);
-            BoxPosition = new Vector3(0, -6, 0);
+            BoxPosition = new Vector3(0, -10, 0);
             FloorWorld = Matrix.CreateScale(30f, 0.001f, 30f) * Matrix.CreateTranslation(BoxPosition);
 
             // Configuramos nuestras matrices de la escena.
@@ -293,10 +293,10 @@ namespace SomosLaBola
             ThreadDispatcher = new SimpleThreadDispatcher(targetThreadCount);
 
             Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(),
-               new PoseIntegratorCallbacks(new NumericVector3(0, -10, 0)), new PositionFirstTimestepper());
+               new PoseIntegratorCallbacks(new NumericVector3(0, -1, 0)), new PositionFirstTimestepper());
 
-            /*Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -0.5f, 0),
-                new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 1, 2000)), 0.1f)));*/
+            Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -10, 0),
+                new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 1, 2000)), 1f)));
 
             //Esfera
             SpheresWorld = new List<Matrix>();
@@ -307,9 +307,7 @@ namespace SomosLaBola
             var sphereIndex = Simulation.Shapes.Add(sphereShape);
             var position = new NumericVector3(0, 0, 0);
 
-            var bodyDescription = BodyDescription.CreateDynamic(position, sphereInertia,
-                new CollidableDescription(sphereIndex, 0.1f)
-                , new BodyActivityDescription(0.1f));
+            var bodyDescription = BodyDescription.CreateConvexDynamic(position, radius * radius * radius, Simulation.Shapes, sphereShape);
 
             var bodyHandle = Simulation.Bodies.Add(bodyDescription);
 
