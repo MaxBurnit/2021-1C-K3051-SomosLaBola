@@ -92,6 +92,7 @@ namespace SomosLaBola
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
 
+        public Boolean puedoSaltar = true;
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
@@ -160,13 +161,13 @@ namespace SomosLaBola
             //Physics
             Simulation.Timestep(1 / 60f, ThreadDispatcher);
             SpheresWorld.Clear();
-
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
 
             //var spheresHandleCount = SphereHandles.Count;
 
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
+                
                 sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, 5);
             }
 
@@ -187,7 +188,11 @@ namespace SomosLaBola
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 50, 0);
+                if (puedoSaltar)
+                {
+                    sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 100, 0);
+                    puedoSaltar = false;
+                }
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.R) || PositionE.Y < -500)
@@ -307,7 +312,7 @@ namespace SomosLaBola
 
             var radius = 0.03f;
             var sphereShape = new Sphere(radius);
-            var position = new NumericVector3(0, 0, 0);
+            var position = new NumericVector3(0, 30.015934f, 0);
             var bodyDescription = BodyDescription.CreateConvexDynamic(position,1/radius*radius*radius, 
                 Simulation.Shapes,sphereShape);
 
