@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using SomosLaBola.Cameras;
 using SomosLaBola.Geometries;
+using SomosLaBola.Obstaculos;
 
 
 namespace SomosLaBola
@@ -71,6 +72,8 @@ namespace SomosLaBola
         private Model Cube { get; set; }
 
         private Model Esfera { get; set; }
+
+        private ObstaculoMovil ObstaculoEsfera;
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -146,6 +149,9 @@ namespace SomosLaBola
                 foreach (var meshPart in mesh.MeshParts)
                     meshPart.Effect = Efecto;
 
+
+            ObstaculoEsfera = ObstaculoMovil.CrearObstaculoRecorridoVaiven(Cube, Matrix.Identity);
+
             base.LoadContent();
         }
 
@@ -177,6 +183,9 @@ namespace SomosLaBola
         /// </summary>
         protected override void Draw(GameTime gameTime)
         {
+
+            float tiempoTranscurrido = (float) gameTime.TotalGameTime.TotalSeconds;
+
             // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.BlueViolet);
 
@@ -225,6 +234,10 @@ namespace SomosLaBola
                 mesh.Draw();
             }
             SpherePosition = new Vector3(SpherePosition.X - 1, SpherePosition.Y - 1, SpherePosition.Z);
+
+
+            ObstaculoEsfera.Draw(tiempoTranscurrido, View, Projection);
+
         }
 
         private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw = 0f, float pitch = 0f, float roll = 0f)
