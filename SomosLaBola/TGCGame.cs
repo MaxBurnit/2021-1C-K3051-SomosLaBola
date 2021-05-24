@@ -5,12 +5,11 @@ using System;
 using System.Linq;
 using SomosLaBola.Cameras;
 using SomosLaBola.Geometries;
-using TGC.MonoGame.Samples.Collisions;
-using TGC.MonoGame.Samples.Viewer;
 using BepuPhysics;
 using BepuUtilities.Memory;
 using System.Collections.Generic;
 using TGC.MonoGame.Samples.Physics.Bepu;
+using TGC.MonoGame.Samples.Viewer;
 using NumericVector3 = System.Numerics.Vector3;
 using BepuPhysics.Collidables;
 
@@ -50,8 +49,6 @@ namespace SomosLaBola
             IsMouseVisible = true;
         }
 
- 
-        protected new TGCViewer Game { get; }
         private SpriteFont SpriteFont { get; set; }
 
         //Physics
@@ -59,8 +56,8 @@ namespace SomosLaBola
         public List<float> Radii { get; private set; }
         public List<BodyHandle> SphereHandles { get; private set; }
         private Simulation Simulation { get; set; }
-        //private SimpleThreadDispatcher ThreadDispatcher { get; set; }
-
+        public SimpleThreadDispatcher ThreadDispatcher { get; private set; }
+        public Vector3 PositionE { get; private set; }
 
         //Camera
         private TargetCamera Camera { get; set; }
@@ -93,21 +90,7 @@ namespace SomosLaBola
         private Matrix View { get; set; }
         private Matrix Projection { get; set; }
         public Matrix FloorWorld { get; set; }
-        private Vector3 BallAcceleration { get; set; }
-        private Vector3 BallVelocity { get; set; }
-
         public List<Matrix> SpheresWorld { get; private set; }
-        //Booleano para saber si la bola esta en el suelo
-        private bool OnGround { get; set; }
-
-
-
-        //Colliders
-        private BoundingBox Collider{ get; set; }
-        public SimpleThreadDispatcher ThreadDispatcher { get; private set; }
-        public Vector3 PositionE { get; private set; }
-
-
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -119,16 +102,11 @@ namespace SomosLaBola
         {
             // La logica de inicializacion que no depende del contenido se recomienda poner en este metodo.
 
-            // Apago el backface culling.
-            // Esto se hace por un problema en el diseno del modelo del logo de la materia.
-            // Una vez que empiecen su juego, esto no es mas necesario y lo pueden sacar.
             var rasterizerState = new RasterizerState();
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
             // Seria hasta aca.
             InitializeContentM();
-
-           
 
             base.Initialize();
         }
@@ -161,8 +139,7 @@ namespace SomosLaBola
 
             SphereWorld = Matrix.CreateTranslation(SpherePosition) * Matrix.CreateScale(0.02f);
 
-            //Camera.Position = PositionE - new Vector3(100, 0, 0);
-
+            //Update Camera
             Camera.TargetPosition = PositionE;
 
             Camera.BuildView();
@@ -172,10 +149,7 @@ namespace SomosLaBola
                 //Salgo del juego.
                 Exit();
 
-            //Camera.Update(gameTime);
             UpdatePhysics();
-            // Basado en el tiempo que paso se va generando una rotacion.
-            //Rotation += Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
             base.Update(gameTime);
         }
 
@@ -184,24 +158,56 @@ namespace SomosLaBola
             //Physics
             Simulation.Timestep(1 / 60f, ThreadDispatcher);
             SpheresWorld.Clear();
-            var spheresHandleCount = SphereHandles.Count;
 
-            for (var index = 0; index < spheresHandleCount; index++)
+            var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
+
+            //var spheresHandleCount = SphereHandles.Count;
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
-                var pose = Simulation.Bodies.GetBodyReference(SphereHandles[index]).Pose;
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, 5);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            {
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, -5);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(5, 0, 0);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(-5, 0, 0);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            {
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 5, 0);
+            }
+
+
+
+            var pose = sphereBody.Pose;
                 var position = pose.Position;
                 var quaternion = pose.Orientation;
                 var world = Matrix.CreateScale(0.3f) *
                             Matrix.CreateFromQuaternion(new Quaternion(quaternion.X, quaternion.Y, quaternion.Z,
                                 quaternion.W)) *
                             Matrix.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
+
                 SpheresWorld.Add(world);
                 PositionE = new Vector3(position.X, position.Y, position.Z);
                 
-            }
-        }
+            
 
             
+
+
+
+        }
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
@@ -211,19 +217,6 @@ namespace SomosLaBola
         {
             // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.BlueViolet);
-
-            /*// Para dibujar le modelo necesitamos pasarle informacion que el efecto esta esperando.
-            Effect.Parameters["View"].SetValue(View);
-            Effect.Parameters["Projection"].SetValue(Projection);
-            Effect.Parameters["DiffuseColor"].SetValue(Color.DarkBlue.ToVector3());
-            var rotationMatrix = Matrix.CreateRotationY(Rotation);
-
-            foreach (var mesh in Model.Meshes)
-            {
-                World = mesh.ParentBone.Transform * rotationMatrix;
-                Effect.Parameters["World"].SetValue(World);
-                mesh.Draw();
-            }*/
             DrawContentM();
            
         }
@@ -241,19 +234,20 @@ namespace SomosLaBola
 
         private void InitializeContentM()
         {
+            //Camera
             CameraPosition = new Vector3(15, 150, 9);
             CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
             CameraUpPosition.Normalize();
             Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition, Vector3.Zero);
-
             
-
+            //Geometry
             Box = new CubePrimitive(GraphicsDevice);
             BoxPosition = new Vector3(0, -20, 0);
-            FloorWorld = Matrix.CreateScale(200f, 0.1f, 200f) * Matrix.CreateTranslation(BoxPosition);
+            SpherePosition = Vector3.Zero;
+
 
             // Configuramos nuestras matrices de la escena.
-            SpherePosition = Vector3.Zero;
+            FloorWorld = Matrix.CreateScale(200f, 0.1f, 200f) * Matrix.CreateTranslation(BoxPosition);
             SphereWorld = Matrix.CreateScale(0.02f);
             World = Matrix.Identity;
             View = Matrix.CreateLookAt(CameraPosition, SpherePosition, CameraUpPosition);
@@ -267,23 +261,16 @@ namespace SomosLaBola
             // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // Cargo el modelo del logo.
-            //Model = Content.Load<Model>(ContentFolder3D + "tgc-logo/tgc-logo");
-
             Sphere = Content.Load<Model>(ContentFolder3D + "geometries/Sphere");
             
             EnableDefaultLighting(Sphere);
 
-
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
             Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
-            // Asigno el efecto que cargue a cada parte del mesh.
-            // Un modelo puede tener mas de 1 mesh internamente.
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             LoadPhysics();
-            
 
         }
 
@@ -301,7 +288,7 @@ namespace SomosLaBola
             ThreadDispatcher = new SimpleThreadDispatcher(targetThreadCount);
 
             Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(),
-               new PoseIntegratorCallbacks(new NumericVector3(0, -40, 0)), new PositionFirstTimestepper());
+               new PoseIntegratorCallbacks(new NumericVector3(0, -100, 0)), new PositionFirstTimestepper());
 
             Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0),
                 new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 10, 2000)), 0.1f)));
@@ -311,10 +298,7 @@ namespace SomosLaBola
 
             var radius = 0.03f;
             var sphereShape = new Sphere(radius);
-            //sphereShape.ComputeInertia(0.4f, out var sphereInertia);
-            //var sphereIndex = Simulation.Shapes.Add(sphereShape);
             var position = new NumericVector3(0, 0, 0);
-
             var bodyDescription = BodyDescription.CreateConvexDynamic(position,radius * radius * radius, 
                 Simulation.Shapes,sphereShape);
 
@@ -327,12 +311,9 @@ namespace SomosLaBola
 
         private void DrawContentM()
         { 
-
             Box.Draw(FloorWorld, Camera.View, Camera.Projection);
 
             SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
-
-            
 
             SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             SpriteBatch.DrawString(SpriteFont , PositionE.ToString() , new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
