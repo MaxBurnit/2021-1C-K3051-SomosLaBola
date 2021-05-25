@@ -139,11 +139,14 @@ namespace SomosLaBola
             var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
 
             SphereWorld = Matrix.CreateTranslation(SpherePosition) * Matrix.CreateScale(0.02f);
-
+            Vector3 SpherePositionM = new Vector3
+                                                            (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
+                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
+                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z);
             //Update Camera
-            Camera.TargetPosition = PositionE;
+            Camera.TargetPosition =SpherePositionM;
 
-            Camera.Position = new Vector3(PositionE.X, PositionE.Y, PositionE.Z -500);
+            Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
 
             Camera.BuildView();
 
@@ -162,46 +165,55 @@ namespace SomosLaBola
             Simulation.Timestep(1 / 60f, ThreadDispatcher);
             SpheresWorld.Clear();
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
-
+          //  var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
+          
             //var spheresHandleCount = SphereHandles.Count;
 
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
-                
+                sphereBody.Awake = true;
                 sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, 5);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
+                sphereBody.Awake = true;
                 sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, -5);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
             {
+                sphereBody.Awake = true;
                 sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(5, 0, 0);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
             {
+                sphereBody.Awake = true;
                 sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(-5, 0, 0);
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
+                //sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 100, 0);
                 if (puedoSaltar)
                 {
-                    sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 100, 0);
+                    sphereBody.Awake = true;
+                    sphereBody.ApplyLinearImpulse(new NumericVector3(0, 20, 0));
                     puedoSaltar = false;
+                    
                 }
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.R) || PositionE.Y < -500)
             {
+                sphereBody.Awake = true;
                 sphereBody.Pose.Position = NumericVector3.Zero;
                 sphereBody.Velocity.Linear = NumericVector3.Zero;
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
             }
 
+            
 
 
             var pose = sphereBody.Pose;
@@ -252,7 +264,7 @@ namespace SomosLaBola
             CameraPosition = Vector3.One * 100f;
             CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
             CameraUpPosition.Normalize();
-            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition, Vector3.Zero);
+
             
             //Geometry
             Box = new CubePrimitive(GraphicsDevice);
@@ -306,7 +318,6 @@ namespace SomosLaBola
 
             Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0),
                 new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 100, 2000)), 1)));
-
             //Esfera
             SpheresWorld = new List<Matrix>();
 
@@ -321,6 +332,12 @@ namespace SomosLaBola
             SphereHandles.Add(bodyHandle);
 
             Radii.Add(radius);
+
+            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition,
+                                                            new Vector3
+                                                            (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
+                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
+                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z));
         }
 
         private void DrawContentM()
