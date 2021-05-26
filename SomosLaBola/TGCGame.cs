@@ -211,6 +211,7 @@ namespace SomosLaBola
                 sphereBody.Pose.Position = NumericVector3.Zero;
                 sphereBody.Velocity.Linear = NumericVector3.Zero;
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
+                puedoSaltar = true;
             }
 
             
@@ -227,7 +228,6 @@ namespace SomosLaBola
                 SpheresWorld.Add(world);
                 PositionE = new Vector3(position.X, position.Y, position.Z);
                 
-            
 
             
 
