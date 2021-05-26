@@ -225,6 +225,12 @@
 /processorParam:DebugMode=Auto
 /build:Effects/PBR.fx
 
+#begin Effects/PlatformShader.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Effects/PlatformShader.fx
+
 #begin Effects/ShaderVisualizer.fx
 /importer:EffectImporter
 /processor:EffectProcessor
@@ -821,6 +827,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/pbr/metal/roughness.jpg
+
+#begin Textures/Platform.tif
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/Platform.tif
 
 #begin Textures/red.bmp
 /importer:TextureImporter
