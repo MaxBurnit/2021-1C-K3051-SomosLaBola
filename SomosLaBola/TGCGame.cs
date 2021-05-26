@@ -85,7 +85,7 @@ namespace SomosLaBola
         private Matrix Projection { get; set; }
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
-
+        
         //Textures
         private Texture2D GreenTexture { get; set; }
         //private Vector3 DesiredLookAt;
@@ -129,14 +129,14 @@ namespace SomosLaBola
             BoxPosition = new Vector3(0, -40, 0);
             SpherePosition = Vector3.Zero;
 
-
+            var FarPlaneDistance = 120;
             // Configuramos nuestras matrices de la escena.
             FloorWorld = Matrix.CreateScale(2000, 0.1f, 2000) * Matrix.CreateTranslation(BoxPosition);
             SphereWorld = Matrix.CreateScale(0.02f);
             World = Matrix.Identity;
             View = Matrix.CreateLookAt(CameraPosition, SpherePosition, CameraUpPosition);
             Projection =
-                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
+                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, FarPlaneDistance*1.5f);
 
         }
 
@@ -165,7 +165,7 @@ namespace SomosLaBola
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
             var skyBoxEffect = Content.Load<Effect>(ContentFolderEffects + "SkyBox");
             var FarPlaneDistance = 120;
-            Position = new Vector3(0, 30, -100);
+            Position = new Vector3(0, 30, 350);
             Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, FarPlaneDistance);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
@@ -175,9 +175,9 @@ namespace SomosLaBola
             //foreach (var mesh in Cube.Meshes)
             // Un mesh puede tener mas de 1 mesh part (cada 1 puede tener su propio efecto).
               //foreach (var meshPart in mesh.MeshParts)
-                //meshPart.Effect = Efecto;
+              //  meshPart.Effect = Efecto;
 
-            ObstaculoCubo = ObstaculoMovil.CrearObstaculoRecorridoCircular(Cube, Matrix.Identity);
+            ObstaculoCubo = ObstaculoMovil.CrearObstaculoRecorridoCircular(Sphere, Matrix.CreateScale(0.1f,0.1f,0.1f)* Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0,13,-40)));
             LoadPhysics();
 
             base.LoadContent();
@@ -227,6 +227,8 @@ namespace SomosLaBola
             Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0),
                 new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 100, 2000)), 1)));
 
+            Simulation.Statics.Add(new StaticDescription(new NumericVector3(9, 28, 200), new CollidableDescription(Simulation.Shapes.Add(new Sphere(2f)),1)));
+            //Simulation.Statics.Add(new StaticDescription(new ))
            /* for (int i = 0; i < MatrixWorld.Count(); i++)
             {
                 Simulation.Statics.Add(new StaticDescription(MatrixWorld[i].))
@@ -234,14 +236,14 @@ namespace SomosLaBola
             }*/
 
 
-            Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0), new CollidableDescription(Simulation.Shapes.Add(
-                new Box(2000, 100, 2000)), 1)));
+            //Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0), new CollidableDescription(Simulation.Shapes.Add(
+              //  new Box(2000, 100, 2000)), 1)));
             //Esfera
             SpheresWorld = new List<Matrix>();
 
             var radius = 0.03f;
             var sphereShape = new Sphere(radius);
-            var position = new NumericVector3(0, 30.015934f, 0);
+            var position = new NumericVector3(0, 40.015934f, 0);
             var bodyDescription = BodyDescription.CreateConvexDynamic(position, 1 / radius * radius * radius,
                 Simulation.Shapes, sphereShape);
 
@@ -274,7 +276,7 @@ namespace SomosLaBola
             Efecto.Parameters["Projection"].SetValue(Projection);
             Skybox.Draw(Camera.View, Projection, Position);
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
-            //ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
+            ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
             SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
             SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             SpriteBatch.DrawString(SpriteFont, PositionE.ToString(), new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
@@ -319,7 +321,8 @@ namespace SomosLaBola
             Simulation.Timestep(1 / 60f, ThreadDispatcher);
             SpheresWorld.Clear();
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
-            //  var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
+           
+            //var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
 
             //var spheresHandleCount = SphereHandles.Count;
 

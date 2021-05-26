@@ -30,8 +30,8 @@ sampler2D textureSampler = sampler_state
     Texture = (ModelTexture);
     MagFilter = Linear;
     MinFilter = Linear;
-    AddressU = CLAMP;
-    AddressV = CLAMP;
+    AddressU = MIRROR;
+    AddressV = MIRROR;
 };
 
 VertexShaderOutput MainVS(in VertexShaderInput input)

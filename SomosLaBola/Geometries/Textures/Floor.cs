@@ -37,7 +37,7 @@ namespace SomosLaBola.Geometries.Textures
         }
         public void Draw(Matrix world, Matrix view, Matrix projection)
         {
-
+            
             foreach (ModelMesh mesh in Cube.Meshes)
             {
                 Effect.Parameters["World"].SetValue(world);
