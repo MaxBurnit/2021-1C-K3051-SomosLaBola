@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -78,7 +78,7 @@ namespace TGC.MonoGame.Samples.Cameras
         {
             var keyboardState = Keyboard.GetState();
             var time = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
-
+            
             // Check for input to rotate the camera.
             var pitch = 0f;
             var turn = 0f;

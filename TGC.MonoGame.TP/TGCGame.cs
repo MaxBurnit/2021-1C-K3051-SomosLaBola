@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using TGC.MonoGame.Samples.Cameras;
 using TGC.MonoGame.Samples.Geometries;
+using TGC.MonoGame.Samples.Samples.Shaders.SkyBox;
 
 namespace TGC.MonoGame.TP
 {
@@ -47,7 +48,10 @@ namespace TGC.MonoGame.TP
         private Matrix Projection { get; set; }
         public Vector3 Position;
         public Vector3 DesiredLookAt;
+        public float NearPlaneDistance;
+        public float FarPlaneDistance;
         public Vector3 ForwardDirection;
+        private SkyBox SkyBox { get; set; }
 
         private SpherePrimitive Sphere { get; set; }
         private Vector3 SpherePosition { get; set; }
@@ -79,11 +83,13 @@ namespace TGC.MonoGame.TP
             // Seria hasta aca.
 
             DesiredLookAt = new Vector3(0,0,3);
-            Position = new Vector3(0,0,150);
+            Position = new Vector3(0,0,125);
             ForwardDirection = Vector3.Forward;
+            NearPlaneDistance = 1;
+            FarPlaneDistance = 500;
 
             Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, Position, DesiredLookAt,
-                5, 5000);
+                NearPlaneDistance, FarPlaneDistance);
 
             Box = new CubePrimitive(GraphicsDevice, 10, Color.DarkBlue, Color.DarkBlue, Color.DarkGray,
                 Color.DarkGray, Color.DarkBlue, Color.DarkGray);
@@ -97,11 +103,12 @@ namespace TGC.MonoGame.TP
 
             Cylinder = new CylinderPrimitive(GraphicsDevice,10,5,30);
             CylinderPosition = new Vector3(-10,0,10);
+
             //Configuramos nuestras matrices de la escena.
             World = Matrix.Identity;
             View = Matrix.CreateLookAt(Vector3.UnitZ * 150, Vector3.Zero, Vector3.Up);
-            Projection =
-                Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, 250);
+            Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 
+                NearPlaneDistance, FarPlaneDistance * 1.5f);
 
             base.Initialize();
         }
@@ -122,6 +129,11 @@ namespace TGC.MonoGame.TP
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
             Effect = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
+
+            var skyBox = Content.Load<Model>("3D/skybox/cube");
+            var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
+            var skyBoxEffect = Content.Load<Effect>(ContentFolderEffects + "SkyBox");
+            SkyBox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, FarPlaneDistance);
 
             // Asigno el efecto que cargue a cada parte del mesh.
             // Un modelo puede tener mas de 1 mesh internamente.
@@ -188,7 +200,6 @@ namespace TGC.MonoGame.TP
                 Position -= ForwardDirection * time * Speed;
 
             Camera.View = Matrix.CreateLookAt(Position, Position + ForwardDirection, Vector3.Up);
-            Camera.Projection = Projection;
 
             base.Update(gameTime);
         }
@@ -200,7 +211,7 @@ namespace TGC.MonoGame.TP
         protected override void Draw(GameTime gameTime)
         {
             // Aca deberiamos poner toda la logia de renderizado del juego.
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.White);
 
             // Para dibujar le modelo necesitamos pasarle informacion que el efecto esta esperando.
             Effect.Parameters["View"].SetValue(View);
@@ -228,6 +239,7 @@ namespace TGC.MonoGame.TP
                 }
             }
             
+            SkyBox.Draw(Camera.View, Projection, Position);
         }
 
         private void DrawGeometry(GeometricPrimitive geometry, Vector3 position, float yaw, float pitch, float roll)
