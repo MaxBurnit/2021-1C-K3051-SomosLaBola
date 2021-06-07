@@ -253,7 +253,7 @@ namespace SomosLaBola
 
             Radii.Add(radius);
 
-            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, CameraPosition,
+            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.Forward,
                                                             new Vector3
                                                             (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
                                                             Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
@@ -302,9 +302,9 @@ namespace SomosLaBola
             //Update Camera
             Camera.TargetPosition = SpherePositionM;
 
-            Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
+            // Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
 
-            Camera.BuildView();
+            Camera.Update(gameTime);
 
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))

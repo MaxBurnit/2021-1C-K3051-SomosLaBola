@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace SomosLaBola.Cameras
 {
@@ -12,14 +13,26 @@ namespace SomosLaBola.Cameras
         /// </summary>
         public readonly Vector3 DefaultWorldUpVector = Vector3.Up;
 
+        private Vector2 pastMousePosition;
+        public float MouseSensitivity { get; set; } = 5f;
+
+        private bool changed;
+
+        private float cameraDistance;
+
+
         /// <summary>
         ///     Camera looking at a particular direction, which has the up vector (0,1,0).
         /// </summary>
         /// <param name="aspectRatio">Aspect ratio, defined as view space width divided by height.</param>
         /// <param name="position">The position of the camera.</param>
         /// <param name="targetPosition">The target towards which the camera is pointing.</param>
-        public TargetCamera(float aspectRatio, Vector3 position, Vector3 targetPosition) : base(aspectRatio)
+        public TargetCamera(float aspectRatio, Vector3 FrontDirection, Vector3 targetPosition) : base(aspectRatio)
         {
+            this.FrontDirection = FrontDirection;
+            cameraDistance = 250;
+            var position = targetPosition - FrontDirection * cameraDistance; 
+            pastMousePosition = Mouse.GetState().Position.ToVector2();
             BuildView(position, targetPosition);
         }
 
@@ -34,6 +47,7 @@ namespace SomosLaBola.Cameras
         public TargetCamera(float aspectRatio, Vector3 position, Vector3 targetPosition, float nearPlaneDistance,
             float farPlaneDistance) : base(aspectRatio, nearPlaneDistance, farPlaneDistance)
         {
+            pastMousePosition = Mouse.GetState().Position.ToVector2();
             BuildView(position, targetPosition);
         }
 
@@ -59,7 +73,6 @@ namespace SomosLaBola.Cameras
         /// </summary>
         public void BuildView()
         {
-            FrontDirection = Vector3.Normalize(TargetPosition - Position);
             RightDirection = Vector3.Normalize(Vector3.Cross(DefaultWorldUpVector, FrontDirection));
             UpDirection = Vector3.Cross(FrontDirection, RightDirection);
             View = Matrix.CreateLookAt(Position, Position + FrontDirection, UpDirection);
@@ -68,7 +81,36 @@ namespace SomosLaBola.Cameras
         /// <inheritdoc />
         public override void Update(GameTime gameTime)
         {
-            // This camera has no movement, once initialized with position and lookAt it is no longer updated automatically.
+            var elapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            changed = false;
+            ProcessMouseMovement(elapsedTime);
+            Position = TargetPosition - FrontDirection * cameraDistance;
+            BuildView();
+            /*
+            if (changed)
+                BuildView();
+            */
         }
+
+        private void ProcessMouseMovement(float elapsedTime)
+        {
+            var mouseState = Mouse.GetState();
+
+            if (mouseState.RightButton.Equals(ButtonState.Pressed))
+            {
+                var mouseDelta = mouseState.Position.ToVector2() - pastMousePosition;
+                mouseDelta *= MouseSensitivity * elapsedTime;
+
+                var yaw = mouseDelta.X;
+
+                FrontDirection = Vector3.Transform(FrontDirection, Matrix.CreateRotationY(yaw));
+
+                changed = true;
+
+            }
+
+            pastMousePosition = Mouse.GetState().Position.ToVector2();
+        }
+
     }
 }
