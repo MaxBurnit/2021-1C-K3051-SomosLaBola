@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace SomosLaBola.Cameras
@@ -14,11 +15,16 @@ namespace SomosLaBola.Cameras
         public readonly Vector3 DefaultWorldUpVector = Vector3.Up;
 
         private Vector2 pastMousePosition;
-        public float MouseSensitivity { get; set; } = 5f;
+        public float MouseSensitivity { get; set; } = 1f;
 
         private bool changed;
 
         private float cameraDistance;
+
+        private float maxPitch { get; set; } = MathHelper.ToRadians(20);
+        private float minPitch { get; set; } = MathHelper.ToRadians(-20);
+        private float pitch = 0;
+        private float yaw = 0;
 
 
         /// <summary>
@@ -73,23 +79,39 @@ namespace SomosLaBola.Cameras
         /// </summary>
         public void BuildView()
         {
+            View = Matrix.CreateLookAt(Position, Position + FrontDirection, UpDirection);
+        }
+
+        private void UpdateInternalDirections(Vector3 frontDirection)
+        {
+            FrontDirection = Vector3.Normalize(frontDirection);
             RightDirection = Vector3.Normalize(Vector3.Cross(DefaultWorldUpVector, FrontDirection));
             UpDirection = Vector3.Cross(FrontDirection, RightDirection);
-            View = Matrix.CreateLookAt(Position, Position + FrontDirection, UpDirection);
+        }
+
+
+        public void Update(GameTime gameTime, Vector3 targetPosition)
+        {
+            var elapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            changed = false;
+
+            if (this.TargetPosition != targetPosition)
+            {
+                this.TargetPosition = targetPosition;
+                changed = true;
+            }
+
+            ProcessMouseMovement(elapsedTime);
+            Position = TargetPosition - FrontDirection * cameraDistance;
+
+            if (changed)
+                BuildView();
         }
 
         /// <inheritdoc />
         public override void Update(GameTime gameTime)
         {
-            var elapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            changed = false;
-            ProcessMouseMovement(elapsedTime);
-            Position = TargetPosition - FrontDirection * cameraDistance;
-            BuildView();
-            /*
-            if (changed)
-                BuildView();
-            */
+            
         }
 
         private void ProcessMouseMovement(float elapsedTime)
@@ -101,9 +123,25 @@ namespace SomosLaBola.Cameras
                 var mouseDelta = mouseState.Position.ToVector2() - pastMousePosition;
                 mouseDelta *= MouseSensitivity * elapsedTime;
 
-                var yaw = mouseDelta.X;
+                yaw += mouseDelta.X;
+                yaw = MathHelper.WrapAngle(yaw);
 
-                FrontDirection = Vector3.Transform(FrontDirection, Matrix.CreateRotationY(yaw));
+                pitch += mouseDelta.Y;
+                pitch = MathHelper.Clamp(pitch, minPitch, maxPitch);
+
+
+                //var frontRotation = Matrix.CreateRotationY(yaw) * Matrix.CreateRotationZ(pitch);
+                var frontRotation = Matrix.CreateRotationZ(pitch);
+
+                //var frontRotation = Matrix.CreateFromYawPitchRoll(yaw, pitch, 0);
+
+                Vector3 tempFront;
+                tempFront.X = MathF.Cos(yaw) * MathF.Cos(pitch);
+                tempFront.Y = MathF.Sin(pitch);
+                tempFront.Z = MathF.Sin(yaw) * MathF.Cos(pitch);
+
+                if (mouseDelta != Vector2.Zero)
+                    UpdateInternalDirections(tempFront);
 
                 changed = true;
 

@@ -299,12 +299,10 @@ namespace SomosLaBola
                                                             (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
                                                             Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
                                                             Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z);
-            //Update Camera
-            Camera.TargetPosition = SpherePositionM;
 
             // Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
 
-            Camera.Update(gameTime);
+            Camera.Update(gameTime, SpherePositionM);
 
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
