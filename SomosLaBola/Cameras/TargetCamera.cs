@@ -20,6 +20,7 @@ namespace SomosLaBola.Cameras
         private bool changed;
 
         private float cameraDistance;
+        private bool invertedCamera = true;
 
         private float maxPitch { get; set; } = MathHelper.ToRadians(20);
         private float minPitch { get; set; } = MathHelper.ToRadians(-20);
@@ -28,17 +29,18 @@ namespace SomosLaBola.Cameras
 
 
         /// <summary>
-        ///     Camera looking at a particular direction, which has the up vector (0,1,0).
+        ///     Camera following and looking at a particular target.
         /// </summary>
         /// <param name="aspectRatio">Aspect ratio, defined as view space width divided by height.</param>
-        /// <param name="position">The position of the camera.</param>
+        /// <param name="frontDirection">Direction towards the target position, it determines the camera position</param>
         /// <param name="targetPosition">The target towards which the camera is pointing.</param>
-        public TargetCamera(float aspectRatio, Vector3 FrontDirection, Vector3 targetPosition) : base(aspectRatio)
+        public TargetCamera(float aspectRatio, Vector3 frontDirection, Vector3 targetPosition) : base(aspectRatio)
         {
-            this.FrontDirection = FrontDirection;
+            this.FrontDirection = frontDirection;
             cameraDistance = 250;
-            var position = targetPosition - FrontDirection * cameraDistance; 
+            var position = targetPosition - frontDirection * cameraDistance; 
             pastMousePosition = Mouse.GetState().Position.ToVector2();
+            UpdateInternalDirections();
             BuildView(position, targetPosition);
         }
 
@@ -82,9 +84,10 @@ namespace SomosLaBola.Cameras
             View = Matrix.CreateLookAt(Position, Position + FrontDirection, UpDirection);
         }
 
-        private void UpdateInternalDirections(Vector3 frontDirection)
+        private void UpdateInternalDirections()
         {
-            FrontDirection = Vector3.Normalize(frontDirection);
+            var frontRotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0);
+            FrontDirection = Vector3.Normalize(Vector3.Transform(Vector3.Forward, frontRotation));
             RightDirection = Vector3.Normalize(Vector3.Cross(DefaultWorldUpVector, FrontDirection));
             UpDirection = Vector3.Cross(FrontDirection, RightDirection);
         }
@@ -123,25 +126,17 @@ namespace SomosLaBola.Cameras
                 var mouseDelta = mouseState.Position.ToVector2() - pastMousePosition;
                 mouseDelta *= MouseSensitivity * elapsedTime;
 
+                if (invertedCamera)
+                    mouseDelta *= -1;
+
                 yaw += mouseDelta.X;
                 yaw = MathHelper.WrapAngle(yaw);
 
                 pitch += mouseDelta.Y;
                 pitch = MathHelper.Clamp(pitch, minPitch, maxPitch);
 
-
-                //var frontRotation = Matrix.CreateRotationY(yaw) * Matrix.CreateRotationZ(pitch);
-                var frontRotation = Matrix.CreateRotationZ(pitch);
-
-                //var frontRotation = Matrix.CreateFromYawPitchRoll(yaw, pitch, 0);
-
-                Vector3 tempFront;
-                tempFront.X = MathF.Cos(yaw) * MathF.Cos(pitch);
-                tempFront.Y = MathF.Sin(pitch);
-                tempFront.Z = MathF.Sin(yaw) * MathF.Cos(pitch);
-
                 if (mouseDelta != Vector2.Zero)
-                    UpdateInternalDirections(tempFront);
+                    UpdateInternalDirections();
 
                 changed = true;
 
