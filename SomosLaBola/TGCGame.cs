@@ -84,14 +84,13 @@ namespace SomosLaBola
         private Matrix View { get; set; }
         private Matrix Projection { get; set; }
         public Matrix FloorWorld { get; set; }
-        public List<Matrix> SpheresWorld { get; private set; }
         
         //Textures
         private Texture2D GreenTexture { get; set; }
         //private Vector3 DesiredLookAt;
         private List<Matrix> MatrixWorld { get; set; }
         private Floor Floor { get; set; }
-        private Texture2D FloorTexture { get; set; }
+        private Texture2D SphereTexture { get; set; }
 
         private Vector3 Position;
         //private Vector3 ForwardDirection;
@@ -160,7 +159,7 @@ namespace SomosLaBola
 
             GreenTexture = Content.Load<Texture2D>(ContentFolderTextures + "green");
 
-            FloorTexture = Content.Load<Texture2D>(ContentFolderTextures + "grass");
+            SphereTexture = Content.Load<Texture2D>(ContentFolderTextures + "stones");
             
             EnableDefaultLighting(Sphere);
    
@@ -199,19 +198,19 @@ namespace SomosLaBola
                 //       Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escaladoXY, escaladoXY, escaladoZ) * Matrix.CreateTranslation(new Vector3(inicio + decremento, inicio + decremento, -escaladoZ)), View,
                 // Projection);
                 posZ = inicio + decremento;
-                MatrixWorld.Add(Matrix.CreateScale(10f, 2f, 20f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 0, posZ)));
+                MatrixWorld.Add(Matrix.CreateScale(100f, 20f, 200f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 0, posZ)));
 
                 if (i > 10 && i <= 19)
                 {
-                    MatrixWorld.Add(Matrix.CreateScale(10f, 10f, 20f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 12, posZ)));
+                    MatrixWorld.Add(Matrix.CreateScale(100f, 100f, 200f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 12, posZ)));
                 }
 
                 decremento -= 40;
             }
             posZ = inicio + decremento;
-            MatrixWorld.Add(Matrix.CreateScale(10f, 2f, 50f) * Matrix.CreateRotationX(MathHelper.Pi * (-0.05f)) * Matrix.CreateTranslation(new Vector3(0, 12, posZ - 29f)));
+            MatrixWorld.Add(Matrix.CreateScale(100f, 20f, 500f) * Matrix.CreateRotationX(MathHelper.Pi * (-0.05f)) * Matrix.CreateTranslation(new Vector3(0, 12, posZ - 29f)));
             posZ = inicio + decremento;
-            MatrixWorld.Add(Matrix.CreateScale(50f, 2f, 40f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 0, posZ - 79f)));
+            MatrixWorld.Add(Matrix.CreateScale(500f, 20f, 400f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 0, posZ - 79f)));
         }
 
         private void LoadPhysics()
@@ -236,15 +235,14 @@ namespace SomosLaBola
             Simulation.Statics.Add(new StaticDescription(new NumericVector3(9, 28, 200),    
                 new CollidableDescription(Simulation.Shapes.Add(new Sphere(2f)),1)));
             //Simulation.Statics.Add(new StaticDescription(new ))
-           /* for (int i = 0; i < MatrixWorld.Count(); i++)
+            /*for (int i = 0; i < MatrixWorld.Count(); i++)
             {
-                Simulation.Statics.Add(new StaticDescription(MatrixWorld[i].))
-                Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection);
+                var traslacion = new Vector3(MatrixWorld[i].M41,MatrixWorld[i].M42,MatrixWorld[i].M43);
+                var escalado = MatrixWorld[i].
+                Simulation.Statics.Add(new StaticDescription(traslacion, new CollidableDescription(Simulation.Shapes.Add(new Box()))))
             }*/
 
             //Esfera
-            SpheresWorld = new List<Matrix>();
-
             var radius = 0.03f;
             var sphereShape = new Sphere(radius);
             var position = new NumericVector3(0, 40.015934f, 0);
@@ -275,15 +273,10 @@ namespace SomosLaBola
             // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.Black);
 
-            createStage();
+            //createStage();
 
             Box.Draw(FloorWorld, Camera.View, Camera.Projection);
             
-            Efecto.Parameters["World"].SetValue(FloorWorld);
-            Efecto.Parameters["View"].SetValue(Camera.View);
-            Efecto.Parameters["Projection"].SetValue(Camera.Projection);
-            Efecto.Parameters["ModelTexture"].SetValue(FloorTexture);
-
             Efecto.Parameters["View"].SetValue(Camera.View);
             Efecto.Parameters["Projection"].SetValue(Projection);
 
@@ -291,8 +284,25 @@ namespace SomosLaBola
 
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
             ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
-            SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
 
+            Sphere.Draw(SphereWorld,Camera.View,Camera.Projection);
+
+            /*var mesh = Sphere.Meshes.FirstOrDefault();
+
+            if (mesh != null)
+            {
+                foreach (var part in mesh.MeshParts)
+                {
+                    part.Effect = Efecto;
+                    Efecto.Parameters["World"].SetValue(SphereWorld);
+                    Efecto.Parameters["View"].SetValue(Camera.View);
+                    Efecto.Parameters["Projection"].SetValue(Camera.Projection);
+                    Efecto.Parameters["ModelTexture"].SetValue(SphereTexture);
+                }
+
+                mesh.Draw();
+            }*/
+            
             SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, 
                 SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
             SpriteBatch.DrawString(SpriteFont, PositionE.ToString(), new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
@@ -300,8 +310,8 @@ namespace SomosLaBola
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
             var stringSalto = "SALTO";
             if(puedoSaltar) SpriteBatch.DrawString(SpriteFont, stringSalto, 
-                new Vector2(0, GraphicsDevice.Viewport.Height - 50), Color.CornflowerBlue);
-            else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, GraphicsDevice.Viewport.Height - 50), Color.DarkGray);
+                new Vector2(0, 30), Color.CornflowerBlue);
+            else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, 30), Color.DarkGray);
             SpriteBatch.End();
 
         }
@@ -316,7 +326,6 @@ namespace SomosLaBola
             // Aca deberiamos poner toda la logica de actualizacion del juego.
             var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
 
-            SphereWorld = Matrix.CreateTranslation(SpherePosition) * Matrix.CreateScale(0.02f);
             Vector3 SpherePositionM = new Vector3
                                                             (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
                                                             Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
@@ -339,7 +348,6 @@ namespace SomosLaBola
         {
             //Physics
             Simulation.Timestep(1 / 60f, ThreadDispatcher);
-            SpheresWorld.Clear();
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
            
             //var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
@@ -394,12 +402,11 @@ namespace SomosLaBola
             var pose = sphereBody.Pose;
             var position = pose.Position;
             var quaternion = pose.Orientation;
-            var world = Matrix.CreateScale(0.3f) *
+            SphereWorld = Matrix.CreateScale(0.3f) *
                         Matrix.CreateFromQuaternion(new Quaternion(quaternion.X, quaternion.Y, quaternion.Z,
                             quaternion.W)) *
                         Matrix.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
 
-            SpheresWorld.Add(world);
             PositionE = new Vector3(position.X, position.Y, position.Z);
 
         }

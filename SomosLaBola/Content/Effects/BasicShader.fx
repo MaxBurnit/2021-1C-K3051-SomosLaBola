@@ -28,14 +28,13 @@ struct VertexShaderOutput
 texture ModelTexture;
 sampler2D textureSampler = sampler_state
 {
-    Texture = (ModelTexture);
-    MagFilter = Linear;
-    MinFilter = Linear;
-    AddressU = Clamp;
-    AddressV = Clamp;
+	Texture = (ModelTexture);
+	MagFilter = Linear;
+	MinFilter = Linear;
+	AddressU = Clamp;
+	AddressV = Clamp;
 };
 
-float Time = 0;
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
