@@ -15,6 +15,8 @@ using NumericVector3 = System.Numerics.Vector3;
 using BepuPhysics.Collidables;
 using SomosLaBola.Content.Textures;
 using SomosLaBola.Obstaculos;
+using Microsoft.Xna.Framework.Media;
+
 namespace SomosLaBola
 {
     public static class Program
@@ -97,6 +99,10 @@ namespace SomosLaBola
         public Boolean puedoSaltar = true;
 
         private SkyBox Skybox;
+
+        //Song
+        private Song Song { get; set; }
+        private string SongName { get; set; }
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
@@ -171,13 +177,15 @@ namespace SomosLaBola
             Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, FarPlaneDistance);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            
+            SongName = "funkorama";
+            Song = Content.Load<Song>(ContentFolderMusic + SongName);
+            MediaPlayer.Play(Song);
             // Asigno el efecto que cargue a cada parte del mesh.
             // Un modelo puede tener mas de 1 mesh internamente.
             //foreach (var mesh in Cube.Meshes)
             // Un mesh puede tener mas de 1 mesh part (cada 1 puede tener su propio efecto).
-              //foreach (var meshPart in mesh.MeshParts)
-              //  meshPart.Effect = Efecto;
+            //foreach (var meshPart in mesh.MeshParts)
+            //  meshPart.Effect = Efecto;
 
 
 
@@ -327,6 +335,10 @@ namespace SomosLaBola
                 //Salgo del juego.
                 Exit();
             
+            if(MediaPlayer.State == MediaState.Stopped)
+            {
+                MediaPlayer.Play(Song);
+            }
             UpdatePhysics();
             base.Update(gameTime);
         }
