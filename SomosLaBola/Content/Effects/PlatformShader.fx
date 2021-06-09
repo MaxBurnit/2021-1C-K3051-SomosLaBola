@@ -40,7 +40,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
     //output.Color = input.Color;
     //output.TextureCoordinate = input.TextureCoordinate;
     float4 worldPosition = mul(input.Position, World);
-    output.TextureCoordinate = worldPosition;
+    output.TextureCoordinate = normalize(worldPosition);
     float4 viewPosition = mul(worldPosition, View);
 
     output.Position = mul(viewPosition, Projection);
