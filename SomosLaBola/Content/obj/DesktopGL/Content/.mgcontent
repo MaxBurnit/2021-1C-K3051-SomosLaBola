@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Profile>Reach</Profile>
+  <Platform>DesktopGL</Platform>
+  <Config />
+  <SourceFiles>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/geometries/arrow.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/geometries/sphere.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/scene/city.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/skybox/cube.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/tank/tank.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/tgcito-classic/tgcito-classic.obj</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/tgcito-mega/tgcito-mega.obj</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/3D/tgc-logo/tgc-logo.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/BackFace.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/BasicShader.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/BlinnPhong.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/Bloom.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/ComboRata.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/DebugTexture.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/EnvironmentMap.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/GaussianBlur.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/Gizmos.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/PBR.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/PlatformShader.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/ShaderVisualizer.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/ShadowMap.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/SkyBox.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/Terrain.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/TextureMerge.fx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Models/geometries/cube.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Models/geometries/sphere.fbx</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Music/retro-platforming.mp3</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Sounds/a2-8bit.mp3</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Sounds/campanadas horas.wav</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/SpriteFonts/Arial.spritefont</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/floor/adoquin.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/floor/adoquin-2.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/floor/tierra.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/grass.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/gray.bmp</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/green.bmp</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/ground.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/heightmaps/colormap.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/heightmaps/heightmap.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/heightmaps/heightmap-3.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/heightmaps/terrain-texture-3.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/overlay.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/gold/ao.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/gold/color.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/gold/displacement.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/gold/metalness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/gold/normal.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/gold/roughness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/ground/ao.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/ground/color.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/ground/displacement.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/ground/metalness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/ground/normal.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/ground/roughness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/harsh-metal/ao.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/harsh-metal/color.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/harsh-metal/displacement.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/harsh-metal/metalness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/harsh-metal/normal.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/harsh-metal/roughness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/marble/ao.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/marble/color.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/marble/displacement.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/marble/metalness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/marble/normal.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/marble/roughness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/metal/ao.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/metal/color.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/metal/displacement.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/metal/metalness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/metal/normal.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/pbr/metal/roughness.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/Platform.tif</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/red.bmp</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/skyboxes/empty-space/empty-space.dds</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/skyboxes/islands/islands.dds</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/skyboxes/skybox/skybox.dds</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/skyboxes/sun-in-space/sun-in-space.dds</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/skyboxes/sunset/sunset.dds</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/stones.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/tunel/level2.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/tunel/metal.png</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/white.bmp</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/wood/caja-madera-1.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/wood/caja-madera-2.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/wood/caja-madera-3.jpg</File>
+    <File>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Textures/wood/caja-madera-4.jpg</File>
+  </SourceFiles>
+  <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+  </DestFiles>
+</SourceFileCollection>

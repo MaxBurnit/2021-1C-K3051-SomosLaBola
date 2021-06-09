@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/Effects/PBR.fx</SourceFile>
+  <SourceTime>2021-06-08T07:54:05.8592389-03:00</SourceTime>
+  <DestFile>C:/Users/nacho/OneDrive/Documentos/UTN/TGC/2021-1C-K3051-SomosLaBola/SomosLaBola/Content/bin/DesktopGL/Content/Effects/PBR.xnb</DestFile>
+  <DestTime>2021-06-08T08:25:52.1256461-03:00</DestTime>
+  <Importer>EffectImporter</Importer>
+  <ImporterTime>2020-08-10T16:17:54-03:00</ImporterTime>
+  <Processor>EffectProcessor</Processor>
+  <ProcessorTime>2020-08-10T16:17:54-03:00</ProcessorTime>
+  <Parameters>
+    <Key>DebugMode</Key>
+    <Value>Auto</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>
