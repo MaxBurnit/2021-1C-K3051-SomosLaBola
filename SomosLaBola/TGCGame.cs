@@ -9,12 +9,17 @@ using SomosLaBola.Geometries.Textures;
 using BepuPhysics;
 using BepuUtilities.Memory;
 using System.Collections.Generic;
+using System.Numerics;
 using TGC.MonoGame.Samples.Physics.Bepu;
 using TGC.MonoGame.Samples.Viewer;
 using NumericVector3 = System.Numerics.Vector3;
 using BepuPhysics.Collidables;
 using SomosLaBola.Content.Textures;
 using SomosLaBola.Obstaculos;
+using SomosLaBola.Utils;
+using Quaternion = Microsoft.Xna.Framework.Quaternion;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Microsoft.Xna.Framework.Media;
 
 namespace SomosLaBola
@@ -63,8 +68,6 @@ namespace SomosLaBola
 
         //Camera
         private TargetCamera Camera { get; set; }
-        private Vector3 CameraPosition { get; set; }
-        private Vector3 CameraUpPosition { get; set; }
 
         //Graphics
         private GraphicsDeviceManager Graphics { get; }
@@ -73,18 +76,14 @@ namespace SomosLaBola
         //Models
         private Effect Efecto { get; set; }
         private Model Sphere { get; set; }
-        private Model Cube { get; set; }
         private Vector3 SpherePosition { get; set; }
         public Matrix SphereWorld { get; private set; }
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
 
-        private ObstaculoMovil ObstaculoCubo;
+        private ObstaculoMovil obstaculoEsfera;
 
         //Matrix
-        private Matrix World { get; set; }
-        private Matrix View { get; set; }
-        private Matrix Projection { get; set; }
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
         
@@ -94,9 +93,10 @@ namespace SomosLaBola
         private List<Matrix> MatrixWorld { get; set; }
         private Floor Floor { get; set; }
 
-        private Vector3 Position;
         //private Vector3 ForwardDirection;
         public Boolean puedoSaltar = true;
+
+        private Vector3 PlayerInitialPosition = new Vector3(0, 40, 0);
 
         private SkyBox Skybox;
 
@@ -112,10 +112,11 @@ namespace SomosLaBola
         protected override void Initialize()
         {
             // La logica de inicializacion que no depende del contenido se recomienda poner en este metodo.
+            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.Forward, PlayerInitialPosition);
 
-            var rasterizerState = new RasterizerState();
-            rasterizerState.CullMode = CullMode.None;
+            var rasterizerState = new RasterizerState {CullMode = CullMode.None};
             GraphicsDevice.RasterizerState = rasterizerState;
+
             // Seria hasta aca.
             InitializeContent();
 
@@ -124,31 +125,19 @@ namespace SomosLaBola
 
         private void InitializeContent()
         {
-            //Camera
-            CameraPosition = Vector3.One * 100f;
-            CameraUpPosition = new Vector3(-5, -5, 50 / 3f);
-            CameraUpPosition.Normalize();
-
-
             //Geometry
             Box = new CubePrimitive(GraphicsDevice);
             BoxPosition = new Vector3(0, 0, 0);
             SpherePosition = Vector3.Zero;
-            
-            var FarPlaneDistance = 200;
+
             // Configuramos nuestras matrices de la escena.
             FloorWorld = Matrix.CreateScale(2000, 0.1f, 2000) * Matrix.CreateTranslation(BoxPosition);
             SphereWorld = Matrix.CreateScale(0.02f);
-           // World = Matrix.Identity;
-           // View = Matrix.CreateLookAt(CameraPosition, SpherePosition, CameraUpPosition);
-           // Projection =
-           //     Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, GraphicsDevice.Viewport.AspectRatio, 1, FarPlaneDistance*1.5f);
 
         }
 
         protected override void LoadContent()
         {
-
             SpriteFont = Content.Load<SpriteFont>(ContentFolderSpriteFonts + "Arial");
             // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
@@ -157,7 +146,6 @@ namespace SomosLaBola
             LoadPhysics();
             generateMatrixWorld();
             Floor = new Floor(this);
-            Cube = Content.Load<Model>(ContentFolder3D + "geometries/cube");
 
             Sphere = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
 
@@ -169,12 +157,13 @@ namespace SomosLaBola
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
             Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
+
+
             var skyBox = Content.Load<Model>("3D/skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
             var skyBoxEffect = Content.Load<Effect>(ContentFolderEffects + "SkyBox");
-            var FarPlaneDistance = 120;
-            Position = new Vector3(0, 30, 350);
-            Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, FarPlaneDistance);
+            Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, Camera.FarPlane/2);
+            //Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, 1000);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             SongName = "funkorama";
@@ -197,30 +186,36 @@ namespace SomosLaBola
             float inicio = Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z;
             float incremento = 0f;
             float posZ = 0f;
+            Vector3 pos;
             for (int i = 0; i < 90; i++)
             {
                 //       Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escaladoXY, escaladoXY, escaladoZ) * Matrix.CreateTranslation(new Vector3(inicio + decremento, inicio + decremento, -escaladoZ)), View,
                 // Projection);
                 posZ = inicio + incremento;
-                MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 20f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 0, posZ)));
-               Simulation.Statics.Add(new StaticDescription(new NumericVector3(0f,0f,posZ), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 8f, 40f)),1)));
+                pos = Vector3.Forward * posZ;
+                MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 20f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(pos));
+                Simulation.Statics.Add(new StaticDescription( Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 8f, 40f)),1)));
                 if (i > 10 && i <= 29)
                 {
                     //Agrego una collision vertical para que choque con la pared
-                //    if (i == 11)
-                //        Simulation.Statics.Add(new StaticDescription(new NumericVector3(0f, 0f, posZ), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 60f, 40f)), 1)));
-                   
-                    Simulation.Statics.Add(new StaticDescription(new NumericVector3(0f, 12f, posZ), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 64f, 40f)), 1)));
-                    MatrixWorld.Add(Matrix.CreateScale(60f, 30f, 20f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 12, posZ)));
+                    //    if (i == 11)
+                    //        Simulation.Statics.Add(new StaticDescription(new NumericVector3(0f, 0f, posZ), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 60f, 40f)), 1)));
+                    pos += Vector3.Up * 12; 
+                    MatrixWorld.Add(Matrix.CreateScale(60f, 30f, 20f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(pos));
+                    Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 64f, 40f)), 1)));
+
                 }
 
                 incremento += 40;
             }
             //posZ = inicio + incremento;
-         //   MatrixWorld.Add(Matrix.CreateScale(70f, 2f, 100f) * Matrix.CreateRotationX(MathHelper.Pi * (0.08f)) * Matrix.CreateTranslation(new Vector3(0, 12, posZ + 80f)));
-            posZ = inicio + incremento;
-            Simulation.Statics.Add(new StaticDescription(new NumericVector3(0f, 0f, posZ + 490), new CollidableDescription(Simulation.Shapes.Add(new Box(640f, 8f, 1000f)), 1)));
-            MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 0f, posZ+490)));
+            //   MatrixWorld.Add(Matrix.CreateScale(70f, 2f, 100f) * Matrix.CreateRotationX(MathHelper.Pi * (0.08f)) * Matrix.CreateTranslation(new Vector3(0, 12, posZ + 80f)));
+
+            posZ = inicio + incremento + 490;
+            pos = Vector3.Forward * posZ;
+            
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(640f, 8f, 1000f)), 1)));
+            MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(pos));
         }
 
         private void LoadPhysics()
@@ -267,8 +262,8 @@ namespace SomosLaBola
 
             var radius = 5f;
             var sphereShape = new Sphere(radius);
-            var position = new NumericVector3(0, 40.015934f, 0);
-            var bodyDescription = BodyDescription.CreateConvexDynamic(position, 1 / radius*radius*radius*radius*radius,
+            var position = Vector3Utils.toNumeric(PlayerInitialPosition);
+            var bodyDescription = BodyDescription.CreateConvexDynamic(position, 1 / radius * radius * radius,
                 Simulation.Shapes, sphereShape);
 
             var bodyHandle = Simulation.Bodies.Add(bodyDescription);
@@ -277,11 +272,6 @@ namespace SomosLaBola
 
             Radii.Add(radius);
 
-            Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.Forward,
-                                                            new Vector3
-                                                            (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
-                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
-                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z));
         }
 
         private void EnableDefaultLighting(Model model)
@@ -298,7 +288,12 @@ namespace SomosLaBola
             createStage();
             Efecto.Parameters["View"].SetValue(Camera.View);
             Efecto.Parameters["Projection"].SetValue(Camera.Projection);
+
+            GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
+
             Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
+
+
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
             //ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
             SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
@@ -313,6 +308,7 @@ namespace SomosLaBola
                 new Vector2(0, 30), Color.CornflowerBlue);
             else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, 30), Color.DarkGray);
             SpriteBatch.End();
+            
 
         }
 
@@ -355,6 +351,8 @@ namespace SomosLaBola
             Simulation.Timestep(1/ 60f, ThreadDispatcher);
             SpheresWorld.Clear();
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
+
+            var playerAceleration = 5;
            
             //var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
 
@@ -363,25 +361,25 @@ namespace SomosLaBola
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, 5);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Forward * playerAceleration;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, -5);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Backward * playerAceleration;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(5, 0, 0);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Left * playerAceleration;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(-5, 0, 0);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Right * playerAceleration;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
@@ -389,8 +387,9 @@ namespace SomosLaBola
                 //sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 100, 0);
                 if (puedoSaltar)
                 {
+                    var jumpImpulseForce = 1000;
                     sphereBody.Awake = true;
-                    sphereBody.ApplyLinearImpulse(new NumericVector3(0, 30000, 0));
+                    sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce);
                     puedoSaltar = false;
 
                 }
@@ -414,6 +413,7 @@ namespace SomosLaBola
                         Matrix.CreateTranslation(new Vector3(position.X, position.Y, position.Z));
 
             SpheresWorld.Add(world);
+            
             PositionE = new Vector3(position.X, position.Y, position.Z);
 
         }
