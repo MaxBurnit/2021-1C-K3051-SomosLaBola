@@ -37,7 +37,7 @@ namespace SomosLaBola.Cameras
         public TargetCamera(float aspectRatio, Vector3 frontDirection, Vector3 targetPosition) : base(aspectRatio)
         {
             this.FrontDirection = frontDirection;
-            cameraDistance = 250;
+            cameraDistance = 100;
             var position = targetPosition - frontDirection * cameraDistance; 
             pastMousePosition = Mouse.GetState().Position.ToVector2();
             UpdateInternalDirections();

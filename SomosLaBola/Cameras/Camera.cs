@@ -19,6 +19,7 @@ namespace SomosLaBola.Cameras
 
         public Camera(float aspectRatio, float nearPlaneDistance, float farPlaneDistance, float fieldOfViewDegrees)
         {
+            FarPlane = farPlaneDistance;
             BuildProjection(aspectRatio, nearPlaneDistance, farPlaneDistance, fieldOfViewDegrees);
         }
 
