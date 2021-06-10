@@ -302,8 +302,16 @@ namespace SomosLaBola
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
             //ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
             SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
-            SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
+
+            SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque,
+                SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             SpriteBatch.DrawString(SpriteFont, PositionE.ToString(), new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
+            SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(10, 0), Color.White);
+            var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
+            var stringSalto = "SALTO";
+            if (puedoSaltar) SpriteBatch.DrawString(SpriteFont, stringSalto,
+                new Vector2(0, 30), Color.CornflowerBlue);
+            else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, 30), Color.DarkGray);
             SpriteBatch.End();
 
         }
