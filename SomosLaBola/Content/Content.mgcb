@@ -299,6 +299,12 @@
 /processorParam:TextureFormat=Compressed
 /build:Models/geometries/sphere.fbx
 
+#begin Music/funkorama.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Music/funkorama.mp3
+
 #begin Music/retro-platforming.mp3
 /importer:Mp3Importer
 /processor:SongProcessor
