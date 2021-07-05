@@ -51,6 +51,13 @@ namespace SomosLaBola
             IsMouseVisible = true;
         }
         private SpriteFont SpriteFont { get; set; }
+        
+        public const int ST_PRESENTACION = 0;
+        public const int ST_STAGE = 1;
+        public const int ST_CONTROLES = 2;
+       
+        public int status = ST_PRESENTACION;
+
         //Physics
         private BufferPool BufferPool { get; set; }
         public List<float> Radii { get; private set; }
@@ -174,7 +181,6 @@ namespace SomosLaBola
             Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, FarPlaneDistance);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            
             // Asigno el efecto que cargue a cada parte del mesh.
             // Un modelo puede tener mas de 1 mesh internamente.
             //foreach (var mesh in Cube.Meshes)
@@ -270,50 +276,66 @@ namespace SomosLaBola
 
         protected override void Draw(GameTime gameTime)
         {
-            // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.Black);
 
-            //createStage();
+            switch(status){
+                case ST_PRESENTACION : 
+                    DrawCenterText("SOMOS LA BOLA", 3);
+                    DrawCenterTextY("Presione SPACE para jugar", 300 , 1);
+                    DrawCenterTextY("Presione C para ver controles", 350 , 1);
+                    break;
 
-            Box.Draw(FloorWorld, Camera.View, Camera.Projection);
-            
-            Efecto.Parameters["View"].SetValue(Camera.View);
-            Efecto.Parameters["Projection"].SetValue(Projection);
+                case ST_CONTROLES :
+                    DrawCenterTextY("Las flechas del teclado se usan para moverse", 20, 1);
+                    DrawCenterTextY("SPACE para saltar", 100, 1);
+                    DrawCenterTextY("R para reiniciar", 180, 1);
+                    DrawCenterTextY("M para cambiar el material de la bola en el proximo reinicio", 260, 1);
+                    DrawCenterTextY("ESC para salir del juego", 340, 1);
+                    DrawCenterTextY("P para volver a la presentacion", 420, 1);
+                    break;
 
-            Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
+                default: 
+                    // Aca deberiamos poner toda la logia de renderizado del juego.
 
-            float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
-            ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
+                    //createStage();
 
-            Sphere.Draw(SphereWorld,Camera.View,Camera.Projection);
+                    Box.Draw(FloorWorld, Camera.View, Camera.Projection);
 
-            /*var mesh = Sphere.Meshes.FirstOrDefault();
+                    Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
 
-            if (mesh != null)
-            {
-                foreach (var part in mesh.MeshParts)
-                {
+                    float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
+                    ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
+
+                    Sphere.Draw(SphereWorld,Camera.View,Camera.Projection);
+
+                    /*var mesh = Sphere.Meshes.FirstOrDefault();
+
+                    if (mesh != null)
+                    {
+                        foreach (var part in mesh.MeshParts)
+                    {
                     part.Effect = Efecto;
                     Efecto.Parameters["World"].SetValue(SphereWorld);
                     Efecto.Parameters["View"].SetValue(Camera.View);
                     Efecto.Parameters["Projection"].SetValue(Camera.Projection);
                     Efecto.Parameters["ModelTexture"].SetValue(SphereTexture);
-                }
+                    }
 
-                mesh.Draw();
-            }*/
+                    mesh.Draw();
+                    }*/
             
-            SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, 
-                SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
-            SpriteBatch.DrawString(SpriteFont, PositionE.ToString(), new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
-            SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(10, 0), Color.White);
-            var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
-            var stringSalto = "SALTO";
-            if(puedoSaltar) SpriteBatch.DrawString(SpriteFont, stringSalto, 
-                new Vector2(0, 30), Color.CornflowerBlue);
-            else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, 30), Color.DarkGray);
-            SpriteBatch.End();
-
+                    SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque, 
+                    SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullNone);
+                    SpriteBatch.DrawString(SpriteFont, PositionE.ToString(), new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
+                    SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(10, 0), Color.White);
+                    var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
+                    var stringSalto = "SALTO";
+                    if(puedoSaltar) SpriteBatch.DrawString(SpriteFont, stringSalto, 
+                    new Vector2(0, 30), Color.CornflowerBlue);
+                    else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, 30), Color.DarkGray);
+                    SpriteBatch.End();
+                    break;
+            }
         }
 
         /// <summary>
@@ -324,23 +346,58 @@ namespace SomosLaBola
         protected override void Update(GameTime gameTime)
         {
             // Aca deberiamos poner toda la logica de actualizacion del juego.
-            var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
+            switch(status){
+                case ST_PRESENTACION :
+                    if(Keyboard.GetState().IsKeyDown(Keys.Space)){
+                        status = ST_STAGE;
+                    }
+                    if(Keyboard.GetState().IsKeyDown(Keys.C)){
+                        status = ST_CONTROLES;
+                    }
+                    break;
+                case ST_CONTROLES : 
+                    if(Keyboard.GetState().IsKeyDown(Keys.P)){
+                        status = ST_PRESENTACION;
+                    }
+                    break;
+                default: 
 
-            Vector3 SpherePositionM = new Vector3
+                    if(Keyboard.GetState().IsKeyDown(Keys.P)){
+                        status = ST_PRESENTACION;
+                    }
+
+                    var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
+
+                    Vector3 SpherePositionM = new Vector3
                                                             (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
                                                             Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
                                                             Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z);
 
-            // Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
+                    // Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
 
-            Camera.Update(gameTime, SpherePositionM);
+                    Camera.Update(gameTime, SpherePositionM);
 
-            // Capturar Input teclado
-            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
-                //Salgo del juego.
-                Exit();
+                    Efecto.Parameters["ModelTexture"].SetValue(SphereTexture);
+                    Efecto.Parameters["View"]?.SetValue(Camera.View);
+                    Efecto.Parameters["Projection"]?.SetValue(Camera.Projection);
+                    Efecto.CurrentTechnique = Efecto.Techniques["BasicColorDrawing"];
+
+                    foreach (var mesh in Sphere.Meshes)
+                    {
+                    var world = mesh.ParentBone.Transform * SphereWorld;
+                    Efecto.Parameters["World"]?.SetValue(world);
+                    mesh.Draw();
+                    }   
+
+                   
             
-            UpdatePhysics();
+                    UpdatePhysics();
+                    break;
+            }
+            // Capturar Input teclado
+                if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                     //Salgo del juego.
+                    Exit();
             base.Update(gameTime);
         }
 
@@ -433,5 +490,27 @@ namespace SomosLaBola
             base.UnloadContent();
         }
 
+        public void DrawCenterText(string msg, float escala)
+        {
+            var W = GraphicsDevice.Viewport.Width;
+            var H = GraphicsDevice.Viewport.Height;
+            var size = SpriteFont.MeasureString(msg) * escala;
+            SpriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null,
+                Matrix.CreateScale(escala) * Matrix.CreateTranslation((W - size.X) / 2, (H - size.Y) / 2, 0));
+            SpriteBatch.DrawString(SpriteFont, msg, new Vector2(0, 0), Color.CornflowerBlue);
+            SpriteBatch.End();
+        }
+
+        public void DrawCenterTextY(string msg, float Y, float escala)
+        {
+            var W = GraphicsDevice.Viewport.Width;
+            var H = GraphicsDevice.Viewport.Height;
+            var size = SpriteFont.MeasureString(msg) * escala;
+            SpriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null,
+                Matrix.CreateScale(escala) * Matrix.CreateTranslation((W - size.X) / 2, Y, 0));
+            SpriteBatch.DrawString(SpriteFont, msg, new Vector2(0, 0), Color.White);
+            SpriteBatch.End();
+        }
     }
+
 }

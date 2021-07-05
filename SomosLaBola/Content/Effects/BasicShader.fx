@@ -22,7 +22,7 @@ struct VertexShaderOutput
 {
 	float4 Position : SV_POSITION;
     float4 Color : COLOR0;
-    float2 TextureCoordinate : TEXCOORD1;
+    float2 TextureCoordinate : TEXCOORD0;
 };
 
 texture ModelTexture;
