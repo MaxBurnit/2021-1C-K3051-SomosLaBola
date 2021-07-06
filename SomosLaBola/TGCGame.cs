@@ -58,6 +58,14 @@ namespace SomosLaBola
        
         public int status = ST_PRESENTACION;
 
+        public const int M_Goma = 0;
+        public const int M_Metal = 1;
+        public const int M_Madera = 2;
+
+        public int Material = M_Goma;
+        public int ProxMaterial = M_Goma;
+        private bool MPresionada;
+
         //Physics
         private BufferPool BufferPool { get; set; }
         public List<float> Radii { get; private set; }
@@ -331,8 +339,23 @@ namespace SomosLaBola
                     var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
                     var stringSalto = "SALTO";
                     if(puedoSaltar) SpriteBatch.DrawString(SpriteFont, stringSalto, 
-                    new Vector2(0, 30), Color.CornflowerBlue);
-                    else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, 30), Color.DarkGray);
+                    new Vector2(10, 30), Color.CornflowerBlue);
+                    else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(10, 30), Color.DarkGray);
+                    var StringMaterial = "PROXIMO MATERIAL: GOMA";
+                    switch(ProxMaterial){
+                        case M_Goma : 
+                            StringMaterial = "PROXIMO MATERIAL: GOMA";
+                            break;
+                        
+                        case M_Metal :
+                            StringMaterial = "PROXIMO MATERIAL: METAL";
+                            break;
+                        
+                        default :
+                            StringMaterial = "PROXIMO MATERIAL: MADERA";
+                            break;
+                    }
+                    SpriteBatch.DrawString(SpriteFont, StringMaterial, new Vector2(10, 60), Color.White);
                     SpriteBatch.End();
                     break;
             }
@@ -366,6 +389,26 @@ namespace SomosLaBola
                         status = ST_PRESENTACION;
                     }
 
+                    var currentKeyPressed = Keyboard.GetState().IsKeyDown(Keys.M);
+
+                    if(!currentKeyPressed && MPresionada){
+                        switch(ProxMaterial){
+                            case M_Goma: 
+                                ProxMaterial = M_Metal;
+                                break;
+                            
+                            case M_Metal :
+                                ProxMaterial = M_Madera;
+                                break;
+                        
+                            default :
+                                ProxMaterial = M_Goma;
+                                break;
+                            }
+                    }
+
+                    MPresionada = currentKeyPressed;
+
                     var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
 
                     Vector3 SpherePositionM = new Vector3
@@ -389,8 +432,6 @@ namespace SomosLaBola
                     mesh.Draw();
                     }   
 
-                   
-            
                     UpdatePhysics();
                     break;
             }
@@ -411,28 +452,36 @@ namespace SomosLaBola
 
             //var spheresHandleCount = SphereHandles.Count;
 
+            var VectorMovimientoX = new NumericVector3(5,0,0);
+            var VectorMovimientoZ = new NumericVector3(0,0,5);
+
+            if(Material == M_Metal){
+                VectorMovimientoX += new NumericVector3(5,0,0);
+                VectorMovimientoZ += new NumericVector3(0,0,5);
+            }
+
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, -5);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear - VectorMovimientoZ;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 0, 5);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + VectorMovimientoZ;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(-5, 0, 0);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear - VectorMovimientoX;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(5, 0, 0);
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + VectorMovimientoX;
             }
 
             if(sphereBody.Velocity.Linear.Y == velocidadLinearYAnt && sphereBody.Velocity.Angular.Y == velocidadAngularYAnt) puedoSaltar = true; 
@@ -440,8 +489,10 @@ namespace SomosLaBola
             if (Keyboard.GetState().IsKeyDown(Keys.Space) && puedoSaltar)
             {
                 //sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 100, 0);
+                var VectorSalto = new NumericVector3(0,10,0);
+                if(Material == M_Goma) VectorSalto += new NumericVector3(0,10,0);
                 sphereBody.Awake = true;
-                sphereBody.ApplyLinearImpulse(new NumericVector3(0, 10, 0));
+                sphereBody.ApplyLinearImpulse(VectorSalto);
                 puedoSaltar = false;
             }
 
@@ -451,6 +502,7 @@ namespace SomosLaBola
                 sphereBody.Pose.Position = NumericVector3.Zero;
                 sphereBody.Velocity.Linear = NumericVector3.Zero;
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
+                Material = ProxMaterial;
             }
 
             velocidadAngularYAnt = sphereBody.Velocity.Angular.Y;
