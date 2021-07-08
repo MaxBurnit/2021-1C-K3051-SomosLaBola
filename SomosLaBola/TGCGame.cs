@@ -11,7 +11,6 @@ using BepuUtilities.Memory;
 using System.Collections.Generic;
 using System.Numerics;
 using TGC.MonoGame.Samples.Physics.Bepu;
-using TGC.MonoGame.Samples.Viewer;
 using NumericVector3 = System.Numerics.Vector3;
 using BepuPhysics.Collidables;
 using SomosLaBola.Content.Textures;
@@ -99,6 +98,12 @@ namespace SomosLaBola
         private Vector3 PlayerInitialPosition = new Vector3(0, 40, 0);
 
         private SkyBox Skybox;
+
+        public const int ST_PRESENTACION = 0;
+        public const int ST_STAGE = 1;
+        public const int ST_CONTROLES = 2;
+
+        public int status = ST_PRESENTACION;
 
         //Song
         private Song Song { get; set; }
