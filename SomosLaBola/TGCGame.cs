@@ -289,8 +289,27 @@ namespace SomosLaBola
         {
             // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.Black);
+
+            if (status == ST_PRESENTACION)
+            {
+                DrawCenterText("SOMOS LA BOLA", 3);
+                DrawCenterTextY("Presione SPACE para jugar", 300, 1);
+                DrawCenterTextY("Presione C para ver controles", 350, 1);
+                return;
+            }
+            else if (status == ST_CONTROLES)
+            {
+                DrawCenterTextY("Las flechas del teclado se usan para moverse", 20, 1);
+                DrawCenterTextY("SPACE para saltar", 100, 1);
+                DrawCenterTextY("R para reiniciar", 180, 1);
+                DrawCenterTextY("M para cambiar el material de la bola en el proximo reinicio", 260, 1);
+                DrawCenterTextY("ESC para salir del juego", 340, 1);
+                DrawCenterTextY("P para volver a la presentacion", 420, 1);
+                return;
+            }
+
             //Box.Draw(FloorWorld, Camera.View, Camera.Projection);
-            createStage();
+                    createStage();
             Efecto.Parameters["View"].SetValue(Camera.View);
             Efecto.Parameters["Projection"].SetValue(Camera.Projection);
 
@@ -324,6 +343,28 @@ namespace SomosLaBola
         /// </summary>
         protected override void Update(GameTime gameTime)
         {
+            if (status == ST_PRESENTACION)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                {
+                    status = ST_STAGE;
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.C))
+                {
+                    status = ST_CONTROLES;
+                }
+                return;
+            }
+            else if (status == ST_CONTROLES)
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.P))
+                {
+                    status = ST_PRESENTACION;
+                }
+                return;
+            }
+
             // Aca deberiamos poner toda la logica de actualizacion del juego.
             var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
           
@@ -335,14 +376,21 @@ namespace SomosLaBola
 
             // Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
 
+           
+
             Camera.Update(gameTime, SpherePositionM);
 
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
                 //Salgo del juego.
                 Exit();
-            
-            if(MediaPlayer.State == MediaState.Stopped)
+
+            if (Keyboard.GetState().IsKeyDown(Keys.P))
+            {
+                status = ST_PRESENTACION;
+            }
+
+            if (MediaPlayer.State == MediaState.Stopped)
             {
                 MediaPlayer.Play(Song);
             }
@@ -422,6 +470,29 @@ namespace SomosLaBola
             PositionE = new Vector3(position.X, position.Y, position.Z);
 
         }
+
+        public void DrawCenterText(string msg, float escala)
+        {
+            var W = GraphicsDevice.Viewport.Width;
+            var H = GraphicsDevice.Viewport.Height;
+            var size = SpriteFont.MeasureString(msg) * escala;
+            SpriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null,
+                Matrix.CreateScale(escala) * Matrix.CreateTranslation((W - size.X) / 2, (H - size.Y) / 2, 0));
+            SpriteBatch.DrawString(SpriteFont, msg, new Vector2(0, 0), Color.CornflowerBlue);
+            SpriteBatch.End();
+        }
+
+        public void DrawCenterTextY(string msg, float Y, float escala)
+        {
+            var W = GraphicsDevice.Viewport.Width;
+            var H = GraphicsDevice.Viewport.Height;
+            var size = SpriteFont.MeasureString(msg) * escala;
+            SpriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null,
+                Matrix.CreateScale(escala) * Matrix.CreateTranslation((W - size.X) / 2, Y, 0));
+            SpriteBatch.DrawString(SpriteFont, msg, new Vector2(0, 0), Color.White);
+            SpriteBatch.End();
+        }
+
 
         private void createStage()
         {
