@@ -9,6 +9,7 @@ using SomosLaBola.Geometries.Textures;
 using BepuPhysics;
 using BepuUtilities.Memory;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using TGC.MonoGame.Samples.Physics.Bepu;
 using NumericVector3 = System.Numerics.Vector3;
@@ -104,6 +105,15 @@ namespace SomosLaBola
         public const int ST_CONTROLES = 2;
 
         public int status = ST_PRESENTACION;
+
+        public const int M_Goma = 0;
+        public const int M_Metal = 1;
+        public const int M_Madera = 2;
+
+        public int Material = M_Goma;
+        public int ProxMaterial = M_Goma;
+        
+        private bool MPresionada;
 
         //Song
         private Song Song { get; set; }
@@ -328,9 +338,21 @@ namespace SomosLaBola
             SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(10, 0), Color.White);
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
             var stringSalto = "SALTO";
-            if (puedoSaltar) SpriteBatch.DrawString(SpriteFont, stringSalto,
-                new Vector2(0, 30), Color.CornflowerBlue);
-            else SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(0, 30), Color.DarkGray);
+
+            if (puedoSaltar) 
+                SpriteBatch.DrawString(SpriteFont, stringSalto,new Vector2(10, 30), Color.CornflowerBlue);
+            else 
+                SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(10, 30), Color.DarkGray);
+
+            string stringMaterial = ProxMaterial switch
+            {
+                M_Goma => "PROXIMO MATERIAL: GOMA",
+                M_Metal => "PROXIMO MATERIAL: METAL",
+                _ => "PROXIMO MATERIAL: MADERA"
+            };
+
+            SpriteBatch.DrawString(SpriteFont, stringMaterial, new Vector2(10, 60), Color.White);
+
             SpriteBatch.End();
             
 
@@ -364,6 +386,28 @@ namespace SomosLaBola
                 }
                 return;
             }
+
+            var currentKeyPressed = Keyboard.GetState().IsKeyDown(Keys.M);
+
+            if (!currentKeyPressed && MPresionada)
+            {
+                switch (ProxMaterial)
+                {
+                    case M_Goma:
+                        ProxMaterial = M_Metal;
+                        break;
+
+                    case M_Metal:
+                        ProxMaterial = M_Madera;
+                        break;
+
+                    default:
+                        ProxMaterial = M_Goma;
+                        break;
+                }
+            }
+
+            MPresionada = currentKeyPressed;
 
             // Aca deberiamos poner toda la logica de actualizacion del juego.
             var deltaTime = Convert.ToSingle(gameTime.ElapsedGameTime.TotalSeconds);
@@ -406,33 +450,61 @@ namespace SomosLaBola
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
 
             var playerAceleration = 5;
-           
+
             //var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
 
             //var spheresHandleCount = SphereHandles.Count;
 
+            var VectorMovimientoX = new NumericVector3(5, 0, 0);
+            var VectorMovimientoZ = new NumericVector3(0, 0, 5);
+
+            if (Material == M_Metal)
+            {
+                VectorMovimientoX += new NumericVector3(5, 0, 0);
+                VectorMovimientoZ += new NumericVector3(0, 0, 5);
+            }
+
+            var cameraFront = Camera.FrontDirection;
+            Vector3 forwardDirectionMovement = new Vector3(cameraFront.X, 0, cameraFront.Z);
+            forwardDirectionMovement.Normalize();
+
+            Vector3 rightDirectionMovement = Vector3.Cross(forwardDirectionMovement, Vector3.Up);
+            rightDirectionMovement.Normalize();
+
+            var forward = Vector3Utils.toNumeric(forwardDirectionMovement);
+            var backward = Vector3Utils.toNumeric(forwardDirectionMovement * -1);
+            var left = Vector3Utils.toNumeric(rightDirectionMovement * -1);
+            var right = Vector3Utils.toNumeric(rightDirectionMovement);
+
+            var materialSpeedBoost = Material switch
+            {
+                M_Goma => 1.75f,
+                M_Metal => 0.9f,
+                _ => 1
+            };
+
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Forward * playerAceleration;
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + forward * playerAceleration * materialSpeedBoost;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Backward * playerAceleration;
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + backward * playerAceleration * materialSpeedBoost;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Left * playerAceleration;
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + left * playerAceleration * materialSpeedBoost;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
             {
                 sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + NumericVector3Utils.Right * playerAceleration;
+                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + right * playerAceleration * materialSpeedBoost;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
@@ -442,7 +514,7 @@ namespace SomosLaBola
                 {
                     var jumpImpulseForce = 1000;
                     sphereBody.Awake = true;
-                    sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce);
+                    sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce * materialSpeedBoost);
                     puedoSaltar = false;
 
                 }
@@ -455,6 +527,7 @@ namespace SomosLaBola
                 sphereBody.Velocity.Linear = NumericVector3.Zero;
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
                 puedoSaltar = true;
+                Material = ProxMaterial;
             }
 
             var pose = sphereBody.Pose;
