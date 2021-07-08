@@ -86,9 +86,13 @@ namespace SomosLaBola
         //Matrix
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
-        
+
         //Textures
         private Texture2D GreenTexture { get; set; }
+        private Texture2D MetalTexture { get; set; }
+        private Texture2D MaderaTexture { get; set; }
+
+
         //private Vector3 DesiredLookAt;
         private List<Matrix> MatrixWorld { get; set; }
         private Floor Floor { get; set; }
@@ -165,14 +169,16 @@ namespace SomosLaBola
             Sphere = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
 
             GreenTexture = Content.Load<Texture2D>(ContentFolderTextures + "green");
-            
+            MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "pbr/metal/displacement");
+            MaderaTexture = Content.Load<Texture2D>(ContentFolderTextures + "wood/caja-madera-4");
+
             EnableDefaultLighting(Sphere);
    
 
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
             Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
-
+            Efecto.Parameters["ModelTexture"]?.SetValue(GreenTexture);
 
             var skyBox = Content.Load<Model>("3D/skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
@@ -190,7 +196,9 @@ namespace SomosLaBola
             // Un mesh puede tener mas de 1 mesh part (cada 1 puede tener su propio efecto).
             //foreach (var meshPart in mesh.MeshParts)
             //  meshPart.Effect = Efecto;
-
+            
+            foreach (var meshPart in Sphere.Meshes.SelectMany(mesh => mesh.MeshParts))
+                meshPart.Effect = Efecto;
 
 
             base.LoadContent();
@@ -326,11 +334,22 @@ namespace SomosLaBola
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
 
             Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
 
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
             //ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
-            SpheresWorld.ForEach(sphereWorld => Sphere.Draw(sphereWorld, Camera.View, Camera.Projection));
+            SpheresWorld.ForEach(sphereWorld => {
+              var mesh = Sphere.Meshes.FirstOrDefault();
+                if (mesh != null)
+                    foreach (var part in mesh.MeshParts)
+                    {
+                        part.Effect = Efecto;
+                        Efecto.Parameters["World"].SetValue(mesh.ParentBone.Transform * sphereWorld);
+                    }
+
+                mesh.Draw();
+            });
 
             SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque,
                 SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
@@ -528,6 +547,13 @@ namespace SomosLaBola
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
                 puedoSaltar = true;
                 Material = ProxMaterial;
+                var playerTexture = Material switch
+                {
+                    M_Goma => GreenTexture,
+                    M_Metal => MetalTexture,
+                    M_Madera => MaderaTexture
+                };
+                Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
             }
 
             var pose = sphereBody.Pose;

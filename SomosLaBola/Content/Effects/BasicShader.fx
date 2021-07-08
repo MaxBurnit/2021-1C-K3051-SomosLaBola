@@ -73,7 +73,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     float4 textureColor = tex2D(textureSampler, input.TextureCoordinate);
     textureColor.a = 1;
 	// Color and texture are combined in this example, 80% the color of the texture and 20% that of the vertex
-    return 0.8 * textureColor + 0.2 * input.Color;
+    return textureColor;
 }
 
 technique BasicColorDrawing
