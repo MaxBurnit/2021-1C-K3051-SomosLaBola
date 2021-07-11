@@ -355,15 +355,17 @@ namespace SomosLaBola
 
             SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque,
                 SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
-            SpriteBatch.DrawString(SpriteFont, PositionE.ToString(), new Vector2(GraphicsDevice.Viewport.Width - 400, 0), Color.White);
-            SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(10, 0), Color.White);
+            SpriteBatch.DrawString(SpriteFont, PositionE.ToString(), new Vector2(GraphicsDevice.Viewport.Width /2, 0), Color.White);
+            SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(GraphicsDevice.Viewport.Width / 30, 0), Color.White);
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
             var stringSalto = "SALTO";
 
             if (puedoSaltar) 
-                SpriteBatch.DrawString(SpriteFont, stringSalto,new Vector2(10, 30), Color.CornflowerBlue);
+                SpriteBatch.DrawString(SpriteFont, stringSalto,new Vector2(GraphicsDevice.Viewport.Width / 30, GraphicsDevice.Viewport.Height / 10),
+                 Color.CornflowerBlue);
             else 
-                SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(10, 30), Color.DarkGray);
+                SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(GraphicsDevice.Viewport.Width / 30, GraphicsDevice.Viewport.Height / 10),
+                 Color.DarkGray);
 
             string stringMaterial = ProxMaterial switch
             {
@@ -372,7 +374,7 @@ namespace SomosLaBola
                 _ => "PROXIMO MATERIAL: MADERA"
             };
 
-            SpriteBatch.DrawString(SpriteFont, stringMaterial, new Vector2(10, 60), Color.White);
+            SpriteBatch.DrawString(SpriteFont, stringMaterial, new Vector2(GraphicsDevice.Viewport.Width / 30, GraphicsDevice.Viewport.Height / 5), Color.White);
 
             SpriteBatch.End();
             
