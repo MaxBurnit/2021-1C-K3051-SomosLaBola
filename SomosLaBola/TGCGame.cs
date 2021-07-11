@@ -99,6 +99,8 @@ namespace SomosLaBola
 
         //private Vector3 ForwardDirection;
         public Boolean puedoSaltar = true;
+        public float velocidadAngularYAnt;
+        public float velocidadLinearYAnt;
 
         private Vector3 PlayerInitialPosition = new Vector3(0, 40, 0);
 
@@ -526,6 +528,9 @@ namespace SomosLaBola
                 sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + right * playerAceleration * materialSpeedBoost;
             }
 
+            if(MathHelper.Distance(sphereBody.Velocity.Linear.Y, velocidadLinearYAnt) < 0.5 
+                && MathHelper.Distance(sphereBody.Velocity.Angular.Y, velocidadAngularYAnt) < 0.5) puedoSaltar = true;
+
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
                 //sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 100, 0);
@@ -538,6 +543,9 @@ namespace SomosLaBola
 
                 }
             }
+
+            velocidadAngularYAnt = sphereBody.Velocity.Angular.Y;
+            velocidadLinearYAnt = sphereBody.Velocity.Linear.Y;
 
             if (Keyboard.GetState().IsKeyDown(Keys.R) || PositionE.Y < -500)
             {
