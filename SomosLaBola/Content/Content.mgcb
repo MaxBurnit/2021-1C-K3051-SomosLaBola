@@ -462,6 +462,18 @@
 /processorParam:TextureFormat=Color
 /build:Textures/heightmaps/terrain-texture-3.jpg
 
+#begin Textures/metal-bola.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/metal-bola.jpg
+
 #begin Textures/overlay.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -857,6 +869,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/red.bmp
+
+#begin Textures/rubber.jpg
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/rubber.jpg
 
 #begin Textures/skyboxes/empty-space/empty-space.dds
 /importer:TextureImporter

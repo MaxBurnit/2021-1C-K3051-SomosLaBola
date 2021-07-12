@@ -75,6 +75,7 @@ namespace SomosLaBola
 
         //Models
         private Effect Efecto { get; set; }
+        private Effect EfectoEM { get; set; }
         private Model Sphere { get; set; }
         private Vector3 SpherePosition { get; set; }
         public Matrix SphereWorld { get; private set; }
@@ -91,6 +92,9 @@ namespace SomosLaBola
         private Texture2D GreenTexture { get; set; }
         private Texture2D MetalTexture { get; set; }
         private Texture2D MaderaTexture { get; set; }
+
+        private const int EnvironmentmapSize = 2048;
+        private RenderTargetCube EnvironmentMapRenderTarget { get; set; }
 
 
         //private Vector3 DesiredLookAt;
@@ -170,8 +174,8 @@ namespace SomosLaBola
 
             Sphere = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
 
-            GreenTexture = Content.Load<Texture2D>(ContentFolderTextures + "green");
-            MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "pbr/metal/displacement");
+            GreenTexture = Content.Load<Texture2D>(ContentFolderTextures + "rubber");
+            MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "metal-bola");
             MaderaTexture = Content.Load<Texture2D>(ContentFolderTextures + "wood/caja-madera-4");
 
             EnableDefaultLighting(Sphere);
@@ -182,12 +186,16 @@ namespace SomosLaBola
             Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
             Efecto.Parameters["ModelTexture"]?.SetValue(GreenTexture);
 
+            EfectoEM = Content.Load<Effect>(ContentFolderEffects + "EnvironmentMap");
+
             var skyBox = Content.Load<Model>("3D/skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
             var skyBoxEffect = Content.Load<Effect>(ContentFolderEffects + "SkyBox");
             Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, Camera.FarPlane/2);
-            //Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, 1000);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+            EnvironmentMapRenderTarget = new RenderTargetCube(GraphicsDevice, EnvironmentmapSize, false,
+                SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents);
 
             SongName = "funkorama";
             Song = Content.Load<Song>(ContentFolderMusic + SongName);
@@ -208,17 +216,39 @@ namespace SomosLaBola
 
         private void generateMatrixWorld()
         {
+            float inicio = Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z;
+            float incremento = 0f;
             float posZ = 0f;
-            Vector3 pos = Vector3.Forward * posZ; ;
-            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 400f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z-400f)));
-            MatrixWorld.Add(Matrix.CreateScale(60f, 30f, 1000f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X,pos.Y+28,pos.Z - 1800f)));
-            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 3000f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z -5800)));
-            MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 9300)));
+            Vector3 pos;
+            for (int i = 0; i < 90; i++)
+            {
+                //       Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escaladoXY, escaladoXY, escaladoZ) * Matrix.CreateTranslation(new Vector3(inicio + decremento, inicio + decremento, -escaladoZ)), View,
+                // Projection);
+                posZ = inicio + incremento;
+                pos = Vector3.Forward * posZ;
+                MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 20f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(pos));
+                Simulation.Statics.Add(new StaticDescription( Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 8f, 40f)),1)));
+                if (i > 10 && i <= 29)
+                {
+                    //Agrego una collision vertical para que choque con la pared
+                    //    if (i == 11)
+                    //        Simulation.Statics.Add(new StaticDescription(new NumericVector3(0f, 0f, posZ), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 60f, 40f)), 1)));
+                    pos += Vector3.Up * 12; 
+                    MatrixWorld.Add(Matrix.CreateScale(60f, 30f, 20f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(pos));
+                    Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 64f, 40f)), 1)));
 
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 400f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2)*2, 800f)), 0.5f)));
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y + 28, pos.Z - 1800f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 30)*2, 1000f*2)), 0.5f)));
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 5800)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 3000f * 2)), 0.5f)));
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f*2, (pos.Y + 2) * 2, 500f * 2)), 0.5f)));
+                }
+
+                incremento += 40;
+            }
+            //posZ = inicio + incremento;
+            //   MatrixWorld.Add(Matrix.CreateScale(70f, 2f, 100f) * Matrix.CreateRotationX(MathHelper.Pi * (0.08f)) * Matrix.CreateTranslation(new Vector3(0, 12, posZ + 80f)));
+
+            posZ = inicio + incremento + 490;
+            pos = Vector3.Forward * posZ;
+            
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(640f, 8f, 1000f)), 1)));
+            MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(pos));
         }
 
         private void LoadPhysics()
@@ -291,45 +321,78 @@ namespace SomosLaBola
             if (status == ST_PRESENTACION)
             {
                 DrawCenterText("SOMOS LA BOLA", 3);
-                DrawCenterTextY("Presione SPACE para jugar", 300, 1);
-                DrawCenterTextY("Presione C para ver controles", 350, 1);
+                DrawCenterTextY("Presione SPACE para jugar", GraphicsDevice.Viewport.Height * 7/10, 1);
+                DrawCenterTextY("Presione C para ver controles", GraphicsDevice.Viewport.Height * 8/10, 1);
                 return;
             }
             else if (status == ST_CONTROLES)
             {
-                DrawCenterTextY("Las flechas del teclado se usan para moverse", 20, 1);
-                DrawCenterTextY("SPACE para saltar", 100, 1);
-                DrawCenterTextY("R para reiniciar", 180, 1);
-                DrawCenterTextY("M para cambiar el material de la bola en el proximo reinicio", 260, 1);
-                DrawCenterTextY("ESC para salir del juego", 340, 1);
-                DrawCenterTextY("P para volver a la presentacion", 420, 1);
+                DrawCenterTextY("Las flechas del teclado se usan para moverse", GraphicsDevice.Viewport.Height * 1/12, 1);
+                DrawCenterTextY("SPACE para saltar", GraphicsDevice.Viewport.Height * 3/12, 1);
+                DrawCenterTextY("R para reiniciar", GraphicsDevice.Viewport.Height * 5/12, 1);
+                DrawCenterTextY("M para cambiar el material de la bola en el proximo reinicio", GraphicsDevice.Viewport.Height * 7/12, 1);
+                DrawCenterTextY("ESC para salir del juego", GraphicsDevice.Viewport.Height * 9/12, 1);
+                DrawCenterTextY("P para volver a la presentacion", GraphicsDevice.Viewport.Height * 11/12, 1);
                 return;
             }
 
             //Box.Draw(FloorWorld, Camera.View, Camera.Projection);
-                    createStage();
-            Efecto.Parameters["View"].SetValue(Camera.View);
-            Efecto.Parameters["Projection"].SetValue(Camera.Projection);
+            createStage();
 
+            float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
+
+            var playerTexture = Material switch
+                {
+                    M_Goma => GreenTexture,
+                    M_Metal => MetalTexture,
+                    M_Madera => MaderaTexture
+                };
+
+            switch(Material){
+                case M_Metal :
+                    EfectoEM.CurrentTechnique = EfectoEM.Techniques["EnvironmentMapSphere"];
+                    EfectoEM.Parameters["eyePosition"]?.SetValue(Camera.Position);
+                    EfectoEM.Parameters["ModelTexture"]?.SetValue(playerTexture);
+                    EfectoEM.Parameters["environmentMap"]?.SetValue(EnvironmentMapRenderTarget);
+
+                    SpheresWorld.ForEach(sphereWorld => {
+                        var mesh = Sphere.Meshes.FirstOrDefault();
+                        if (mesh != null)
+                        foreach (var part in mesh.MeshParts)
+                        {
+                            part.Effect = EfectoEM;
+                            var worldM = mesh.ParentBone.Transform * sphereWorld;
+                            EfectoEM.Parameters["World"]?.SetValue(worldM);
+                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
+                            EfectoEM.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                            EfectoEM.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+                        }
+
+                        mesh.Draw();
+                    });
+                    break;
+                default : 
+                    Efecto.Parameters["View"]?.SetValue(Camera.View);
+                    Efecto.Parameters["Projection"]?.SetValue(Camera.Projection);
+                    Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
+                    SpheresWorld.ForEach(sphereWorld => {
+                        var mesh = Sphere.Meshes.FirstOrDefault();
+                        if (mesh != null)
+                        foreach (var part in mesh.MeshParts)
+                        {
+                            part.Effect = Efecto;
+                            Efecto.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
+                        }
+
+                        mesh.Draw();
+                    });
+                break;
+            }
+            
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
 
             Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-
-
-            float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
-            //ObstaculoCubo.Draw(tiempoTranscurrido, Camera.View, Projection);
-            SpheresWorld.ForEach(sphereWorld => {
-              var mesh = Sphere.Meshes.FirstOrDefault();
-                if (mesh != null)
-                    foreach (var part in mesh.MeshParts)
-                    {
-                        part.Effect = Efecto;
-                        Efecto.Parameters["World"].SetValue(mesh.ParentBone.Transform * sphereWorld);
-                    }
-
-                mesh.Draw();
-            });
 
             SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque,
                 SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
@@ -535,13 +598,6 @@ namespace SomosLaBola
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
                 puedoSaltar = true;
                 Material = ProxMaterial;
-                var playerTexture = Material switch
-                {
-                    M_Goma => GreenTexture,
-                    M_Metal => MetalTexture,
-                    M_Madera => MaderaTexture
-                };
-                Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
             }
 
             var pose = sphereBody.Pose;

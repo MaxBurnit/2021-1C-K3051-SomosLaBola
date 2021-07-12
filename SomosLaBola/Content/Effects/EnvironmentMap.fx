@@ -13,10 +13,10 @@ float4x4 InverseTransposeWorld;
 
 float3 eyePosition;
 
-texture baseTexture;
+texture ModelTexture;
 sampler2D textureSampler = sampler_state
 {
-    Texture = (baseTexture);
+    Texture = (ModelTexture);
     MagFilter = Linear;
     MinFilter = Linear;
     AddressU = Clamp;
