@@ -208,39 +208,17 @@ namespace SomosLaBola
 
         private void generateMatrixWorld()
         {
-            float inicio = Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z;
-            float incremento = 0f;
             float posZ = 0f;
-            Vector3 pos;
-            for (int i = 0; i < 90; i++)
-            {
-                //       Cube.Draw(Matrix.CreateRotationZ(MathHelper.Pi * 0.25f) * Matrix.CreateScale(escaladoXY, escaladoXY, escaladoZ) * Matrix.CreateTranslation(new Vector3(inicio + decremento, inicio + decremento, -escaladoZ)), View,
-                // Projection);
-                posZ = inicio + incremento;
-                pos = Vector3.Forward * posZ;
-                MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 20f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(pos));
-                Simulation.Statics.Add(new StaticDescription( Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 8f, 40f)),1)));
-                if (i > 10 && i <= 29)
-                {
-                    //Agrego una collision vertical para que choque con la pared
-                    //    if (i == 11)
-                    //        Simulation.Statics.Add(new StaticDescription(new NumericVector3(0f, 0f, posZ), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 60f, 40f)), 1)));
-                    pos += Vector3.Up * 12; 
-                    MatrixWorld.Add(Matrix.CreateScale(60f, 30f, 20f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(pos));
-                    Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, 64f, 40f)), 1)));
+            Vector3 pos = Vector3.Forward * posZ; ;
+            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 400f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z-400f)));
+            MatrixWorld.Add(Matrix.CreateScale(60f, 30f, 1000f) * Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X,pos.Y+28,pos.Z - 1800f)));
+            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 3000f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z -5800)));
+            MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 9300)));
 
-                }
-
-                incremento += 40;
-            }
-            //posZ = inicio + incremento;
-            //   MatrixWorld.Add(Matrix.CreateScale(70f, 2f, 100f) * Matrix.CreateRotationX(MathHelper.Pi * (0.08f)) * Matrix.CreateTranslation(new Vector3(0, 12, posZ + 80f)));
-
-            posZ = inicio + incremento + 490;
-            pos = Vector3.Forward * posZ;
-            
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(pos), new CollidableDescription(Simulation.Shapes.Add(new Box(640f, 8f, 1000f)), 1)));
-            MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(pos));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 400f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2)*2, 800f)), 0.5f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y + 28, pos.Z - 1800f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 30)*2, 1000f*2)), 0.5f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 5800)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 3000f * 2)), 0.5f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f*2, (pos.Y + 2) * 2, 500f * 2)), 0.5f)));
         }
 
         private void LoadPhysics()
