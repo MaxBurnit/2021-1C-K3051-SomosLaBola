@@ -51,7 +51,7 @@ namespace SomosLaBola
             // Maneja la configuracion y la administracion del dispositivo grafico.
             Graphics = new GraphicsDeviceManager(this);
             // Descomentar para que el juego sea pantalla completa.
-            // Graphics.IsFullScreen = true;
+            //Graphics.IsFullScreen = true;
             // Carpeta raiz donde va a estar toda la Media.
             Content.RootDirectory = "Content";
             // Hace que el mouse sea visible.
@@ -75,6 +75,7 @@ namespace SomosLaBola
 
         //Models
         private Effect Efecto { get; set; }
+        private Effect EfectoBasico { get; set; }
         private Effect EfectoEM { get; set; }
         private Model Sphere { get; set; }
         private Vector3 SpherePosition { get; set; }
@@ -89,7 +90,7 @@ namespace SomosLaBola
         public List<Matrix> SpheresWorld { get; private set; }
 
         //Textures
-        private Texture2D GreenTexture { get; set; }
+        private Texture2D GomaTexture { get; set; }
         private Texture2D MetalTexture { get; set; }
         private Texture2D MaderaTexture { get; set; }
 
@@ -116,18 +117,35 @@ namespace SomosLaBola
 
         public int status = ST_PRESENTACION;
 
+        //Materiales
         public const int M_Goma = 0;
         public const int M_Metal = 1;
         public const int M_Madera = 2;
 
         public int Material = M_Goma;
         public int ProxMaterial = M_Goma;
+
+        public float KAmbientGoma = 0.8f;
+        public float KDiffuseGoma = 0.8f;
+        public float KSpecularGoma = 0.4f;
+
+        public float KAmbientMetal = 0.9f;
+        public float KDiffuseMetal = 0.8f;
+        public float KSpecularMetal = 0.8f;
+
+        public float KAmbientMadera = 0.5f;
+        public float KDiffuseMadera = 0.5f;
+        public float KSpecularMadera = 0.3f;
         
+
         private bool MPresionada;
 
         //Song
         private Song Song { get; set; }
         private string SongName { get; set; }
+
+        private float Timer { get; set; }
+
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
@@ -174,18 +192,19 @@ namespace SomosLaBola
 
             Sphere = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
 
-            GreenTexture = Content.Load<Texture2D>(ContentFolderTextures + "rubber");
+            GomaTexture = Content.Load<Texture2D>(ContentFolderTextures + "rubber");
             MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "metal-bola");
             MaderaTexture = Content.Load<Texture2D>(ContentFolderTextures + "wood/caja-madera-4");
 
-            EnableDefaultLighting(Sphere);
+            //EnableDefaultLighting(Sphere);
    
 
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
-            Efecto = Content.Load<Effect>(ContentFolderEffects + "BasicShader");
-            Efecto.Parameters["ModelTexture"]?.SetValue(GreenTexture);
+            Efecto = Content.Load<Effect>(ContentFolderEffects + "BlinnPhong");
+            Efecto.Parameters["ModelTexture"]?.SetValue(GomaTexture);
 
+            EfectoBasico = Content.Load<Effect>(ContentFolderEffects + "BlinnPhong");
             EfectoEM = Content.Load<Effect>(ContentFolderEffects + "EnvironmentMap");
 
             var skyBox = Content.Load<Model>("3D/skybox/cube");
@@ -343,45 +362,97 @@ namespace SomosLaBola
 
             var playerTexture = Material switch
                 {
-                    M_Goma => GreenTexture,
+                    M_Goma => GomaTexture,
                     M_Metal => MetalTexture,
-                    M_Madera => MaderaTexture
+                    M_Madera => MaderaTexture,
+                    _ => GomaTexture
                 };
 
             switch(Material){
                 case M_Metal :
-                    EfectoEM.CurrentTechnique = EfectoEM.Techniques["EnvironmentMapSphere"];
-                    EfectoEM.Parameters["eyePosition"]?.SetValue(Camera.Position);
-                    EfectoEM.Parameters["ModelTexture"]?.SetValue(playerTexture);
-                    EfectoEM.Parameters["environmentMap"]?.SetValue(EnvironmentMapRenderTarget);
-
-                    SpheresWorld.ForEach(sphereWorld => {
-                        var mesh = Sphere.Meshes.FirstOrDefault();
-                        if (mesh != null)
-                        foreach (var part in mesh.MeshParts)
-                        {
-                            part.Effect = EfectoEM;
-                            var worldM = mesh.ParentBone.Transform * sphereWorld;
-                            EfectoEM.Parameters["World"]?.SetValue(worldM);
-                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
-                            EfectoEM.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
-                            EfectoEM.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
-                        }
-
-                        mesh.Draw();
-                    });
-                    break;
-                default : 
-                    Efecto.Parameters["View"]?.SetValue(Camera.View);
-                    Efecto.Parameters["Projection"]?.SetValue(Camera.Projection);
+                    Efecto.CurrentTechnique = Efecto.Techniques["EnvironmentMapSphere"];
                     Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
+                    Efecto.Parameters["environmentMap"]?.SetValue(EnvironmentMapRenderTarget);
+
+                    Efecto.Parameters["KAmbient"]?.SetValue(KAmbientMetal);
+                    Efecto.Parameters["KDiffuse"]?.SetValue(KDiffuseMetal);
+                    Efecto.Parameters["KSpecular"]?.SetValue(KSpecularMetal);
+
+                    Efecto.Parameters["shininess"]?.SetValue(1f);
+
+                    Efecto.Parameters["ambientColor"]?.SetValue(Color.LightGray.ToVector3());
+                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Gray.ToVector3());
+                    Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
+
                     SpheresWorld.ForEach(sphereWorld => {
                         var mesh = Sphere.Meshes.FirstOrDefault();
                         if (mesh != null)
                         foreach (var part in mesh.MeshParts)
                         {
                             part.Effect = Efecto;
+                            var worldM = mesh.ParentBone.Transform * sphereWorld;
+                            Efecto.Parameters["World"]?.SetValue(worldM);
+                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
+                            Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                            Efecto.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+                        }
+
+                        mesh.Draw();
+                    });
+                    break;
+                case M_Madera :
+                    Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
+
+                    Efecto.Parameters["KAmbient"]?.SetValue(KAmbientMadera);
+                    Efecto.Parameters["KDiffuse"]?.SetValue(KDiffuseMadera);
+                    Efecto.Parameters["KSpecular"]?.SetValue(KSpecularMadera);
+
+                    Efecto.Parameters["shininess"]?.SetValue(1f);
+
+                    Efecto.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
+                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
+                    Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
+
+                    SpheresWorld.ForEach(sphereWorld => {
+                        var mesh = Sphere.Meshes.FirstOrDefault();
+                        if (mesh != null)
+                        foreach (var part in mesh.MeshParts)
+                        {
+                            part.Effect = Efecto;
+                            var worldM = mesh.ParentBone.Transform * sphereWorld;
                             Efecto.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
+                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
+                            Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                            Efecto.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+                        }
+
+                        mesh.Draw();
+                    });
+                    break;
+                default : 
+                    Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
+
+                    Efecto.Parameters["KAmbient"]?.SetValue(KAmbientGoma);
+                    Efecto.Parameters["KDiffuse"]?.SetValue(KDiffuseGoma);
+                    Efecto.Parameters["KSpecular"]?.SetValue(KSpecularGoma);
+
+                    Efecto.Parameters["shininess"]?.SetValue(1f);
+
+                    Efecto.Parameters["ambientColor"]?.SetValue(Color.MonoGameOrange.ToVector3());
+                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.MonoGameOrange.ToVector3());
+                    Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
+
+                    SpheresWorld.ForEach(sphereWorld => {
+                        var mesh = Sphere.Meshes.FirstOrDefault();
+                        if (mesh != null)
+                        foreach (var part in mesh.MeshParts)
+                        {
+                            part.Effect = Efecto;
+                            var worldM = mesh.ParentBone.Transform * sphereWorld;
+                            Efecto.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
+                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
+                            Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                            Efecto.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
                         }
 
                         mesh.Draw();
@@ -487,6 +558,12 @@ namespace SomosLaBola
            
 
             Camera.Update(gameTime, SpherePositionM);
+
+            Timer += (float) gameTime.ElapsedGameTime.TotalSeconds;
+
+            var lightPosition = new Vector3((float) Math.Cos(Timer) * 700f, 800f, (float) Math.Sin(Timer) * 700f);
+            Efecto.Parameters["eyePosition"]?.SetValue(Camera.Position);
+            Efecto.Parameters["lightPosition"]?.SetValue(lightPosition);
 
             // Capturar Input teclado
             if (Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -598,6 +675,8 @@ namespace SomosLaBola
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
                 puedoSaltar = true;
                 Material = ProxMaterial;
+                if(Material == M_Metal) Efecto = EfectoEM;
+                else Efecto = EfectoBasico;
             }
 
             var pose = sphereBody.Pose;

@@ -21,10 +21,10 @@ float shininess;
 float3 lightPosition;
 float3 eyePosition; // Camera position
 
-texture baseTexture;
+texture ModelTexture;
 sampler2D textureSampler = sampler_state
 {
-    Texture = (baseTexture);
+    Texture = (ModelTexture);
     MagFilter = Linear;
     MinFilter = Linear;
     AddressU = Clamp;

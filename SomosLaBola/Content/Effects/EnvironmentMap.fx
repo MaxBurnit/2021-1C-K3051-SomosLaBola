@@ -11,6 +11,14 @@ float4x4 WorldViewProjection;
 float4x4 World;
 float4x4 InverseTransposeWorld;
 
+float3 ambientColor; // Light's Ambient Color
+float3 diffuseColor; // Light's Diffuse Color
+float3 specularColor; // Light's Specular Color
+float KAmbient; 
+float KDiffuse; 
+float KSpecular;
+float shininess; 
+float3 lightPosition;
 float3 eyePosition;
 
 texture ModelTexture;
@@ -64,6 +72,24 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
 float4 EnvironmentMapPS(VertexShaderOutput input) : COLOR
 {
+    // Base vectors
+    float3 lightDirection = normalize(lightPosition - input.WorldPosition.xyz);
+    float3 viewDirection = normalize(eyePosition - input.WorldPosition.xyz);
+    float3 halfVector = normalize(lightDirection + viewDirection);
+
+	// Get the texture texel
+    float4 texelColor = tex2D(textureSampler, input.TextureCoordinates);
+    
+	// Calculate the diffuse light
+    float NdotL = saturate(dot(input.Normal.xyz, lightDirection));
+    float3 diffuseLight = KDiffuse * diffuseColor * NdotL;
+
+	// Calculate the specular light
+    float NdotH = dot(input.Normal.xyz, halfVector);
+    float3 specularLight = sign(NdotL) * KSpecular * specularColor * pow(saturate(NdotH), shininess);
+
+    float4 finalLightColor = float4(saturate(ambientColor * KAmbient + diffuseLight) * texelColor.rgb + specularLight, texelColor.a);
+
 	//Normalizar vectores
 	float3 normal = normalize(input.Normal.xyz);
     
@@ -71,7 +97,7 @@ float4 EnvironmentMapPS(VertexShaderOutput input) : COLOR
 	float3 baseColor = tex2D(textureSampler, input.TextureCoordinates).rgb;
 	
     // Not part of the mapping, just adjusting color
-    baseColor = lerp(baseColor, float3(1, 1, 1), step(length(baseColor), 0.01));
+    baseColor = lerp(baseColor, finalLightColor.rgb, step(length(baseColor), 0.01));
     
 	//Obtener texel de CubeMap
 	float3 view = normalize(eyePosition.xyz - input.WorldPosition.xyz);
