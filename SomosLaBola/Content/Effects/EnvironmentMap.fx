@@ -20,6 +20,7 @@ float KSpecular;
 float shininess; 
 float3 lightPosition;
 float3 eyePosition;
+float reflectionLevel;
 
 texture ModelTexture;
 sampler2D textureSampler = sampler_state
@@ -97,13 +98,13 @@ float4 EnvironmentMapPS(VertexShaderOutput input) : COLOR
 	float3 baseColor = tex2D(textureSampler, input.TextureCoordinates).rgb;
 	
     // Not part of the mapping, just adjusting color
-    baseColor = lerp(baseColor, finalLightColor.rgb, step(length(baseColor), 0.01));
+    baseColor = lerp(baseColor, finalLightColor.rgb, 0.5); 
     
 	//Obtener texel de CubeMap
 	float3 view = normalize(eyePosition.xyz - input.WorldPosition.xyz);
 	float3 reflection = reflect(view, normal);
 	float3 reflectionColor = texCUBE(environmentMapSampler, reflection).rgb;
-    return float4(lerp(baseColor, reflectionColor, 0.5), 1);
+    return float4(lerp(baseColor, reflectionColor, reflectionLevel), 1);
 }
 
 
