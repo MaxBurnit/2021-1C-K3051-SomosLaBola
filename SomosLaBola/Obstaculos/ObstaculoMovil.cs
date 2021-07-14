@@ -6,6 +6,7 @@ using BepuPhysics.Constraints;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SomosLaBola.Obstaculos.Recorridos;
+using SomosLaBola.Utils;
 
 namespace SomosLaBola.Obstaculos
 {
@@ -28,9 +29,9 @@ namespace SomosLaBola.Obstaculos
             this.recorrido = recorrido;
             this.transformaciones = transformaciones;
             this.Simulation = simulation;
-            var boxBodyHandle= Simulation.Bodies.Add(BodyDescription.CreateKinematic(new RigidPose(new System.Numerics.Vector3(transformaciones.Translation.X, transformaciones.Translation.Y, transformaciones.Translation.Z)), new CollidableDescription(Simulation.Shapes.Add(new Box(100f,100f,100f)), 0.1f), new BodyActivityDescription(-1f)));
+            var boxBodyHandle = Simulation.Bodies.Add(BodyDescription.CreateKinematic(new RigidPose(new System.Numerics.Vector3(transformaciones.Translation.X, transformaciones.Translation.Y, transformaciones.Translation.Z)), new CollidableDescription(Simulation.Shapes.Add(new Box(100f, 100f, 100f)), 0.1f), new BodyActivityDescription(-1f)));
             BoxBodyHandles.Add(boxBodyHandle);
-            
+
             Effect = Game.Content.Load<Effect>(ContentFolderEffects + "PlatformShader");
             Texture = Game.Content.Load<Texture2D>(ContentFolderTextures + "Platform");
 
@@ -46,17 +47,28 @@ namespace SomosLaBola.Obstaculos
             {
                 part.Effect = Effect;
             }
-    }
+
+            previusPosition = Vector3Utils.toNumeric(transformaciones.Translation);
+        }
 
         private Matrix transformaciones;
         private Model model;
         private IRecorrido recorrido;
 
+        private System.Numerics.Vector3 previusPosition;
+
         public void Draw(float tiempoTranscurrido, Matrix vista, Matrix proyeccion)
         {
             var matrixMundoTrasladada = transformaciones * recorrido.ObtenerMovimiento(tiempoTranscurrido);
             var boxBodyHandle = Simulation.Bodies.GetBodyReference(BoxBodyHandles[0]);
+
             boxBodyHandle.Pose.Position = new System.Numerics.Vector3(matrixMundoTrasladada.Translation.X, matrixMundoTrasladada.Translation.Y, matrixMundoTrasladada.Translation.Z);
+
+            var velocity = boxBodyHandle.Pose.Position - previusPosition;
+            boxBodyHandle.Velocity.Linear = velocity * 60;
+
+            previusPosition = boxBodyHandle.Pose.Position;
+
             foreach (ModelMesh mesh in model.Meshes)
             {
                 Effect.Parameters["World"].SetValue(matrixMundoTrasladada);

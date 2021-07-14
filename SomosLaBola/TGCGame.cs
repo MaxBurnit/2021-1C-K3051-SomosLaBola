@@ -789,7 +789,7 @@ namespace SomosLaBola
             if (Keyboard.GetState().IsKeyDown(Keys.R) || PositionE.Y < -2000)
             {
                 sphereBody.Awake = true;
-                sphereBody.Pose.Position = new NumericVector3(0f,10f,0f);
+                sphereBody.Pose.Position = new NumericVector3(6100, -650, -9150);
                 sphereBody.Velocity.Linear = NumericVector3.Zero;
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
                 puedoSaltar = true;
