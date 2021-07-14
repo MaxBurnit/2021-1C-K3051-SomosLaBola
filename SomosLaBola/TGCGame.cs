@@ -21,6 +21,9 @@ using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Microsoft.Xna.Framework.Media;
+using SomosLaBola.PlayerInfo;
+using SomosLaBola.Powerups;
+using Vector4 = Microsoft.Xna.Framework.Vector4;
 
 namespace SomosLaBola
 {
@@ -36,7 +39,8 @@ namespace SomosLaBola
 
     public class TGCGame : Game
     {
-        public const string ContentFolder3D = "Models/";
+        public const string ContentFolder3D = "3D/";
+        public const string ContentFolderModels = "Models/";
         public const string ContentFolderEffects = "Effects/";
         public const string ContentFolderMusic = "Music/";
         public const string ContentFolderSounds = "Sounds/";
@@ -83,6 +87,8 @@ namespace SomosLaBola
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
 
+        private Model TankModel { get; set; }
+
         private ObstaculoMovil obstaculoEsfera;
 
         //Matrix
@@ -106,11 +112,11 @@ namespace SomosLaBola
         private Floor Floor { get; set; }
 
         //private Vector3 ForwardDirection;
-        public Boolean puedoSaltar = true;
+        public Boolean puedoSaltar = false;
         public float velocidadAngularYAnt;
         public float velocidadLinearYAnt;
 
-        private Vector3 PlayerInitialPosition = new Vector3(0, 40, 0);
+        private Vector3 PlayerInitialPosition = Checkpoint.CurrentCheckpoint;
 
         private SkyBox Skybox;
 
@@ -148,6 +154,12 @@ namespace SomosLaBola
         private string SongName { get; set; }
 
         private float Timer { get; set; }
+
+
+
+        private List<Trigger> powerUps = new List<Trigger>();
+        private List<Checkpoint> checkpoints = new List<Checkpoint>();
+        private List<Trigger> initialPowerUps;
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -195,14 +207,24 @@ namespace SomosLaBola
             generateMatrixWorld();
             Floor = new Floor(this);
 
-            Sphere = Content.Load<Model>(ContentFolder3D + "geometries/sphere");
+            Sphere = Content.Load<Model>(ContentFolderModels + "geometries/sphere");
+            TankModel = Content.Load<Model>(ContentFolder3D + "tank/tank");
 
             GomaTexture = Content.Load<Texture2D>(ContentFolderTextures + "rubber");
             MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "metal-bola");
             MaderaTexture = Content.Load<Texture2D>(ContentFolderTextures + "wood/caja-madera-4");
 
             //EnableDefaultLighting(Sphere);
-   
+
+            checkpoints.Add(new Checkpoint(new Vector3(0, 65, -1000)));
+            checkpoints.Add(new Checkpoint(new Vector3(0, 65, -2700)));
+            checkpoints.Add(new Checkpoint(new Vector3(0, 20, -8500)));
+            checkpoints.Add(new Checkpoint(new Vector3(2500, -650, -9300)));
+            checkpoints.Add(new Checkpoint(new Vector3(8850, -650, -9150)));
+
+            powerUps.Add(new Planear(new Vector3(0, 20, -100)));
+            initialPowerUps = new List<Trigger>(powerUps);
+
 
             // Cargo un efecto basico propio declarado en el Content pipeline.
             // En el juego no pueden usar BasicEffect de MG, deben usar siempre efectos propios.
@@ -438,17 +460,20 @@ namespace SomosLaBola
                     SpheresWorld.ForEach(sphereWorld => {
                         var mesh = Sphere.Meshes.FirstOrDefault();
                         if (mesh != null)
-                        foreach (var part in mesh.MeshParts)
                         {
-                            part.Effect = Efecto;
-                            var worldM = mesh.ParentBone.Transform * sphereWorld;
-                            Efecto.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
-                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
-                            Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
-                            Efecto.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
-                        }
+                            foreach (var part in mesh.MeshParts)
+                            {
+                                part.Effect = Efecto;
+                                var worldM = mesh.ParentBone.Transform * sphereWorld;
+                                Efecto.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
+                                var WorldViewProjection = worldM * Camera.View * Camera.Projection;
+                                Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                                Efecto.Parameters["InverseTransposeWorld"]
+                                    ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+                            }
 
-                        mesh.Draw();
+                            mesh.Draw();
+                        }
                     });
 
                     GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -503,7 +528,9 @@ namespace SomosLaBola
             SpriteBatch.DrawString(SpriteFont, stringMaterial, new Vector2(GraphicsDevice.Viewport.Width / 30, GraphicsDevice.Viewport.Height / 5), Color.White);
 
             SpriteBatch.End();
-            
+
+            checkpoints.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
+            powerUps.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
 
         }
 
@@ -550,6 +577,59 @@ namespace SomosLaBola
             //DebugTextureEffect.Parameters["cubeMapTexture"]?.SetValue(EnvironmentMapRenderTarget);
             FullScreenQuad.Draw(DebugTextureEffect);
         }
+
+
+         private void DrawTrigger(Trigger trigger, float tiempoTranscurrido)
+         {
+             GraphicsDevice.BlendState = BlendState.AlphaBlend;
+
+             var worldMatrix = Matrix.CreateRotationY(tiempoTranscurrido % (MathF.PI * 2)) *
+                               Matrix.CreateTranslation(trigger.BoundingSphere.Center);
+
+             var mesh = Sphere.Meshes.FirstOrDefault();
+
+
+
+             if (mesh != null)
+             {
+                 var meshScale = Vector3.Zero;
+                 mesh.ParentBone.Transform.Decompose(out meshScale, out _, out _);
+
+                 var scale = 1 / (meshScale.X / trigger.BoundingSphere.Radius);
+
+                 Efecto.CurrentTechnique = Efecto.Techniques["SetColorDrawing"];
+
+
+                 var color = trigger.Color().ToVector4();
+                 color.W = 0.2f;
+
+                 Efecto.Parameters["Color"]?.SetValue(color);
+                 Efecto.Parameters["ambientColor"]?.SetValue(Vector3.One);
+
+                foreach (var part in mesh.MeshParts)
+                {
+                    part.Effect = Efecto;
+                    var worldM = mesh.ParentBone.Transform * Matrix.CreateScale(scale)  * worldMatrix;
+                    Efecto.Parameters["World"]?.SetValue(worldM);
+                    var worldViewProjection = worldM * Camera.View * Camera.Projection;
+                    Efecto.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
+                    Efecto.Parameters["InverseTransposeWorld"]
+                        ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+                }
+
+                mesh.Draw();
+                Efecto.CurrentTechnique = Efecto.Techniques["BasicColorDrawing"];
+             }
+
+             /*
+            var a = new SpherePrimitive(GraphicsDevice,trigger.BoundingSphere.Radius * 2);
+            a.Effect = Efecto;
+            a.Effect.Alpha = 0.2f;
+
+
+            a.Draw(worldMatrix, Camera.View, Camera.Projection);
+             */
+         }
 
         private void SetCubemapCameraForOrientation(CubeMapFace face)
         {
@@ -637,6 +717,8 @@ namespace SomosLaBola
                 }
             }
 
+            Player.Update(gameTime);
+
             MPresionada = currentKeyPressed;
 
             // Aca deberiamos poner toda la logica de actualizacion del juego.
@@ -676,7 +758,28 @@ namespace SomosLaBola
                 MediaPlayer.Play(Song);
             }
             UpdatePhysics();
-           
+
+            //var playerBounding = Sphere.Meshes.First().BoundingSphere.Transform(SphereWorld);
+
+            var playerBounding = new BoundingSphere(SpherePositionM, 5);
+
+            var acquiredPowerUp = powerUps.Find(powerUp => powerUp.BoundingSphere.Intersects(playerBounding));
+
+            if (acquiredPowerUp != null)
+            {
+                powerUps.Remove(acquiredPowerUp);
+                acquiredPowerUp.AplicarEfecto();
+            }
+
+            var acquiredCheckpoint = checkpoints.Find(checkpoint => checkpoint.BoundingSphere.Intersects(playerBounding));
+
+            if (acquiredCheckpoint != null)
+            {
+                checkpoints.Remove(acquiredCheckpoint);
+                acquiredCheckpoint.AplicarEfecto();
+            }
+
+
             base.Update(gameTime);
         }
 
@@ -687,7 +790,7 @@ namespace SomosLaBola
             SpheresWorld.Clear();
            
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
-            var playerAceleration = 5;
+            var playerAceleration = 10;
             //var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
 
             //var spheresHandleCount = SphereHandles.Count;
@@ -770,10 +873,30 @@ namespace SomosLaBola
             velocidadAngularYAnt = sphereBody.Velocity.Angular.Y;
             velocidadLinearYAnt = sphereBody.Velocity.Linear.Y;
 
+            var maxSpeed = 150f;
+
+            var horizontalVelocity = sphereBody.Velocity.Linear;
+            horizontalVelocity.Y = 0;
+
+            var speed = MathHelper.Min(horizontalVelocity.Length(), maxSpeed);
+
+            horizontalVelocity = horizontalVelocity != NumericVector3.Zero ? 
+                NumericVector3.Normalize(horizontalVelocity) * speed : NumericVector3.Zero;
+
+            var finalVelocity = horizontalVelocity;
+
+            var yVelocity = sphereBody.Velocity.Linear.Y;
+
+            finalVelocity.Y = MathHelper.Max(yVelocity, -Player.PlayerStatus.MaxFallingSpeed);
+
+            sphereBody.Velocity.Linear = finalVelocity;
+
             if (Keyboard.GetState().IsKeyDown(Keys.R) || PositionE.Y < -2000)
             {
+                powerUps = new List<Trigger>(initialPowerUps);
+                Player.resetStatus();
                 sphereBody.Awake = true;
-                sphereBody.Pose.Position = new NumericVector3(0f,10f,0f);
+                sphereBody.Pose.Position = Vector3Utils.toNumeric(Checkpoint.CurrentCheckpoint);
                 sphereBody.Velocity.Linear = NumericVector3.Zero;
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
                 puedoSaltar = true;
