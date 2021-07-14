@@ -378,6 +378,8 @@ namespace SomosLaBola
             var bodyDescription = BodyDescription.CreateConvexDynamic(position, 1 / radius * radius * radius,
                Simulation.Shapes, sphereShape);
 
+            bodyDescription.Collidable.Continuity.Mode = ContinuousDetectionMode.Continuous;
+
             var bodyHandle = Simulation.Bodies.Add(bodyDescription);
 
             SphereHandles.Add(bodyHandle);
@@ -445,6 +447,8 @@ namespace SomosLaBola
                     break;
 
                 case M_Goma :
+                    Efecto.CurrentTechnique = Efecto.Techniques["BasicColorDrawing"];
+
                     Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
 
                     Efecto.Parameters["KAmbient"]?.SetValue(KAmbientGoma);
@@ -597,28 +601,27 @@ namespace SomosLaBola
 
                  var scale = 1 / (meshScale.X / trigger.BoundingSphere.Radius);
 
-                 Efecto.CurrentTechnique = Efecto.Techniques["SetColorDrawing"];
+                 EfectoBasico.CurrentTechnique = EfectoBasico.Techniques["SetColorDrawing"];
 
 
                  var color = trigger.Color().ToVector4();
                  color.W = 0.2f;
 
-                 Efecto.Parameters["Color"]?.SetValue(color);
-                 Efecto.Parameters["ambientColor"]?.SetValue(Vector3.One);
+                 EfectoBasico.Parameters["Color"]?.SetValue(color);
+                 EfectoBasico.Parameters["ambientColor"]?.SetValue(Vector3.One);
 
                 foreach (var part in mesh.MeshParts)
                 {
-                    part.Effect = Efecto;
+                    part.Effect = EfectoBasico;
                     var worldM = mesh.ParentBone.Transform * Matrix.CreateScale(scale)  * worldMatrix;
-                    Efecto.Parameters["World"]?.SetValue(worldM);
+                    EfectoBasico.Parameters["World"]?.SetValue(worldM);
                     var worldViewProjection = worldM * Camera.View * Camera.Projection;
-                    Efecto.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
-                    Efecto.Parameters["InverseTransposeWorld"]
+                    EfectoBasico.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
+                    EfectoBasico.Parameters["InverseTransposeWorld"]
                         ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
                 }
 
                 mesh.Draw();
-                Efecto.CurrentTechnique = Efecto.Techniques["BasicColorDrawing"];
              }
 
              /*
