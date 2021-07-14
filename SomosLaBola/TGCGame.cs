@@ -21,6 +21,7 @@ using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Microsoft.Xna.Framework.Media;
+using SomosLaBola.Obstaculos.Recorridos;
 
 namespace SomosLaBola
 {
@@ -78,6 +79,8 @@ namespace SomosLaBola
         private Effect EfectoBasico { get; set; }
         private Effect EfectoEM { get; set; }
         private Model Sphere { get; set; }
+
+        private Model Cube { get; set; }
         private Vector3 SpherePosition { get; set; }
         public Matrix SphereWorld { get; private set; }
         private CubePrimitive Box { get; set; }
@@ -85,6 +88,7 @@ namespace SomosLaBola
 
         private ObstaculoMovil obstaculoEsfera;
 
+        private ObstaculoMovil obstMovil { get; set; }
         //Matrix
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
@@ -103,6 +107,9 @@ namespace SomosLaBola
 
         //private Vector3 DesiredLookAt;
         private List<Matrix> MatrixWorld { get; set; }
+
+        private List<Matrix> MatrixWorldObs { get; set; }
+        
         private Floor Floor { get; set; }
 
         //private Vector3 ForwardDirection;
@@ -182,14 +189,18 @@ namespace SomosLaBola
 
             CubeMapCamera = new StaticCamera(1f, SpherePosition, Vector3.UnitX, Vector3.Up);
             CubeMapCamera.BuildProjection(1f, 1f, 3000f, MathHelper.PiOver2);
+
+
         }
 
         protected override void LoadContent()
         {
             SpriteFont = Content.Load<SpriteFont>(ContentFolderSpriteFonts + "Arial");
+            Cube = Content.Load<Model>(ContentFolder3D + "geometries/cube");
             // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             MatrixWorld = new List<Matrix>();
+            MatrixWorldObs = new List<Matrix>();
            // ObstaculoCubo = ObstaculoMovil.CrearObstaculoRecorridoCircular(Sphere, Matrix.CreateScale(0.1f, 0.1f, 0.1f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 13, -40)));
             LoadPhysics();
             generateMatrixWorld();
@@ -263,12 +274,11 @@ namespace SomosLaBola
             MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 600f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 2590f, pos.Y - 700f, pos.Z - 9300)));
             MatrixWorld.Add(Matrix.CreateScale(3000f, 2f, 300f)* Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 5890f, pos.Y - 700f, pos.Z - 9300)));
             MatrixWorld.Add(Matrix.CreateScale(600f, 2f, 900f)* Matrix.CreateRotationZ(-MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 9490f, pos.Y - 700f, pos.Z - 9300)));
-            
             float lastPosition=generateIndividualPlatforms(pos);
-
-
-            MatrixWorld.Add(Matrix.CreateScale(500f, 10f, 500f) * Matrix.CreateRotationZ(-MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + lastPosition + 500f+300f +300f, pos.Y - 700f, pos.Z - 9300)));
-                                                                                      //Es la misma traslación del bloque                                                    Es el doble del escalado del bloque.
+            MatrixWorld.Add(Matrix.CreateScale(500f, 10f, 500f) * Matrix.CreateRotationZ(-MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + lastPosition + 500f+300f +300f, pos.Y - 650f, pos.Z - 9300)));
+            MatrixWorldObs.Add(Matrix.CreateScale(50f, 50f, 50f) * Matrix.CreateRotationZ(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 5890f, pos.Y-650f, pos.Z - 9600)));
+            createObstaculoMovil();
+            //Es la misma traslación del bloque                                                    Es el doble del escalado del bloque.
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 400f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 800f)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y + 28, pos.Z - 1800f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 30) * 2, 1000f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 5800)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 3000f * 2)), 0.1f)));
@@ -300,11 +310,11 @@ namespace SomosLaBola
             }
             return posAcum;
         }
-        /*private void createObstaculoMovil()
-        {
-              Matrix matrixWorldObs;
-              matrixWorldObs= Matrix.CreateScale(60f, 2f, 400f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 400f)
-        }*/
+        private void createObstaculoMovil()
+        {       
+           IRecorrido recorrido = new Vaiven(600f, 0.5f, 2);
+           obstMovil = new ObstaculoMovil(Cube, MatrixWorldObs[0], recorrido, Simulation, SphereHandles,this);
+        }
 
         private void LoadPhysics()
         {
@@ -369,11 +379,12 @@ namespace SomosLaBola
             foreach (var mesh in model.Meshes)
                 ((BasicEffect)mesh.Effects.FirstOrDefault())?.EnableDefaultLighting();
         }
-
+        float time;
         protected override void Draw(GameTime gameTime)
         {
             // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.Black);
+           
 
             if (status == ST_PRESENTACION)
             {
@@ -451,9 +462,13 @@ namespace SomosLaBola
                         mesh.Draw();
                     });
 
+
                     GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                     GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
                     createStage(Camera);
+                    time += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    obstMovil.Draw(time, Camera.View, Camera.Projection);
+                    
                     break;
 
                 default :  
@@ -472,6 +487,7 @@ namespace SomosLaBola
 
                     DrawEnvironmentMap();
                     break;
+                    
             }
             
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };

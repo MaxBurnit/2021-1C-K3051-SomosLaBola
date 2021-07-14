@@ -24,14 +24,14 @@ namespace SomosLaBola.Obstaculos.Recorridos
             if (tiempoRecorridoCiclo < tiempoRecorridoIda)
             {
                 var porcientoIdaRecorrido = tiempoRecorridoCiclo / tiempoRecorridoIda;
-                var xPosition = distancia * porcientoIdaRecorrido;
-                return Matrix.CreateTranslation(xPosition, 0, 0);
+                var zPosition = distancia * porcientoIdaRecorrido;
+                return Matrix.CreateTranslation(0, 0, zPosition);
             }
             else
             {
                 var porcientoVueltaRecorrida = (tiempoRecorridoCiclo - tiempoRecorridoIda) / tiempoRecorridoVuelta;
-                var xPosition = distancia - distancia * porcientoVueltaRecorrida;
-                return Matrix.CreateTranslation(xPosition, 0, 0);
+                var zPosition = distancia - distancia * porcientoVueltaRecorrida;
+                return Matrix.CreateTranslation(0, 0, zPosition);
             }
         }
     }
