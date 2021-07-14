@@ -208,7 +208,7 @@ namespace SomosLaBola
         protected override void LoadContent()
         {
             SpriteFont = Content.Load<SpriteFont>(ContentFolderSpriteFonts + "Arial");
-            Cube = Content.Load<Model>(ContentFolder3D + "geometries/cube");
+            Cube = Content.Load<Model>(ContentFolderModels + "geometries/cube");
             // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             MatrixWorld = new List<Matrix>();
@@ -403,7 +403,6 @@ namespace SomosLaBola
             foreach (var mesh in model.Meshes)
                 ((BasicEffect)mesh.Effects.FirstOrDefault())?.EnableDefaultLighting();
         }
-        float time;
         protected override void Draw(GameTime gameTime)
         {
             // Aca deberiamos poner toda la logia de renderizado del juego.
@@ -495,8 +494,6 @@ namespace SomosLaBola
                     GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                     GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
                     createStage(Camera);
-                    time += (float)gameTime.ElapsedGameTime.TotalSeconds;
-                    obstMovil.Draw(time, Camera.View, Camera.Projection);
                     
                     break;
 
@@ -551,10 +548,12 @@ namespace SomosLaBola
 
             checkpoints.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
             powerUps.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
+            obstMovil.Draw(gameTime, Camera.View, Camera.Projection);
+
 
         }
 
-         private void DrawEnvironmentMap()
+        private void DrawEnvironmentMap()
         {
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };

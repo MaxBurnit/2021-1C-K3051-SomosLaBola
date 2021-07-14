@@ -35,6 +35,7 @@ namespace SomosLaBola.Obstaculos
             Effect = Game.Content.Load<Effect>(ContentFolderEffects + "PlatformShader");
             Texture = Game.Content.Load<Texture2D>(ContentFolderTextures + "Platform");
 
+            /*
             Simulation.Solver.Add(boxBodyHandle, SphereHandles[0],
                     new AngularAxisMotor
                     {
@@ -47,6 +48,7 @@ namespace SomosLaBola.Obstaculos
             {
                 part.Effect = Effect;
             }
+            */
 
             previusPosition = Vector3Utils.toNumeric(transformaciones.Translation);
         }
@@ -57,15 +59,18 @@ namespace SomosLaBola.Obstaculos
 
         private System.Numerics.Vector3 previusPosition;
 
-        public void Draw(float tiempoTranscurrido, Matrix vista, Matrix proyeccion)
+        public void Draw(GameTime gameTime, Matrix vista, Matrix proyeccion)
         {
+            float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
+            float deltaTiempo = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             var matrixMundoTrasladada = transformaciones * recorrido.ObtenerMovimiento(tiempoTranscurrido);
             var boxBodyHandle = Simulation.Bodies.GetBodyReference(BoxBodyHandles[0]);
 
             boxBodyHandle.Pose.Position = new System.Numerics.Vector3(matrixMundoTrasladada.Translation.X, matrixMundoTrasladada.Translation.Y, matrixMundoTrasladada.Translation.Z);
 
             var velocity = boxBodyHandle.Pose.Position - previusPosition;
-            boxBodyHandle.Velocity.Linear = velocity * 60;
+            boxBodyHandle.Velocity.Linear = velocity * (1 / deltaTiempo);
 
             previusPosition = boxBodyHandle.Pose.Position;
 
