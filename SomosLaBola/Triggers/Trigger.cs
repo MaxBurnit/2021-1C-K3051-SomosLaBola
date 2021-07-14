@@ -58,8 +58,8 @@ namespace SomosLaBola.Powerups
 
     class Checkpoint : Trigger
     {
-        //public static Vector3 CurrentCheckpoint = new Vector3(0, 50, -20);
-        public static Vector3 CurrentCheckpoint = new Vector3(6100, -650,-9150);
+        public static Vector3 CurrentCheckpoint = new Vector3(0, 50, -20);
+        //public static Vector3 CurrentCheckpoint = new Vector3(6100, -650,-9150);
 
         public Checkpoint(Vector3 centro) : base(centro)
         {
