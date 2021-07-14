@@ -155,6 +155,7 @@ namespace SomosLaBola
         
 
         private bool MPresionada;
+        private bool GPresionada;
 
         //Song
         private Song Song { get; set; }
@@ -162,7 +163,7 @@ namespace SomosLaBola
 
         private float Timer { get; set; }
 
-
+        public Boolean godMode = false;
 
         private List<Trigger> powerUps = new List<Trigger>();
         private List<Checkpoint> checkpoints = new List<Checkpoint>();
@@ -535,6 +536,10 @@ namespace SomosLaBola
                 SpriteBatch.DrawString(SpriteFont, stringSalto, new Vector2(GraphicsDevice.Viewport.Width / 30, GraphicsDevice.Viewport.Height / 10),
                  Color.DarkGray);
 
+            if(godMode) 
+                SpriteBatch.DrawString(SpriteFont, "GOD MODE", new Vector2(GraphicsDevice.Viewport.Width * 4/10, 
+                GraphicsDevice.Viewport.Height * 19/20), Color.DarkBlue);
+
             string stringMaterial = ProxMaterial switch
             {
                 M_Goma => "PROXIMO MATERIAL: GOMA",
@@ -750,7 +755,14 @@ namespace SomosLaBola
 
             // Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
 
-           
+            var currentKeyPressedG = Keyboard.GetState().IsKeyDown(Keys.G);
+            
+            if(!currentKeyPressedG && GPresionada){
+                    if(godMode) godMode = false;
+                    else godMode = true;
+            }
+            
+            GPresionada = currentKeyPressedG;
 
             Camera.Update(gameTime, SpherePositionM);
             CubeMapCamera.Position = SpherePositionM;
@@ -816,10 +828,9 @@ namespace SomosLaBola
             var VectorMovimientoX = new NumericVector3(5, 0, 0);
             var VectorMovimientoZ = new NumericVector3(0, 0, 5);
 
-            if (Material == M_Metal)
-            {
-                VectorMovimientoX += new NumericVector3(5, 0, 0);
-                VectorMovimientoZ += new NumericVector3(0, 0, 5);
+            if(godMode){
+               sphereBody.Velocity.Linear = new NumericVector3(0,0,0);
+               sphereBody.Velocity.Angular = new NumericVector3(0,0,0);
             }
 
             var cameraFront = Camera.FrontDirection;
@@ -848,28 +859,42 @@ namespace SomosLaBola
                 _ => 1
             };
 
+           var velocidadGodMode = 3;
+
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
-                sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + forward * playerAceleration * materialSpeedBoost;
+                if(!godMode){
+                    sphereBody.Awake = true;
+                    sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + forward * playerAceleration * materialSpeedBoost;
+                } 
+                else sphereBody.Pose.Position.Z -= velocidadGodMode;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
-                sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + backward * playerAceleration * materialSpeedBoost;
+                if(!godMode){
+                    sphereBody.Awake = true;
+                    sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + backward * playerAceleration * materialSpeedBoost;
+                } 
+                else sphereBody.Pose.Position.Z += velocidadGodMode;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
             {
-                sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + left * playerAceleration * materialSpeedBoost;
+                if(!godMode) {
+                    sphereBody.Awake = true;
+                    sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + left * playerAceleration * materialSpeedBoost;
+                }
+                else sphereBody.Pose.Position.X -= velocidadGodMode;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
             {
-                sphereBody.Awake = true;
-                sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + right * playerAceleration * materialSpeedBoost;
+                if(!godMode){
+                    sphereBody.Awake = true;
+                    sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + right * playerAceleration * materialSpeedBoost;
+                 } 
+                else sphereBody.Pose.Position.X += velocidadGodMode;
             }
 
             if(MathHelper.Distance(sphereBody.Velocity.Linear.Y, velocidadLinearYAnt) < 0.5 
@@ -878,15 +903,19 @@ namespace SomosLaBola
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
                 //sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + new NumericVector3(0, 100, 0);
-                if (puedoSaltar)
-                {
-                    var jumpImpulseForce = 1000;
-                    sphereBody.Awake = true;
-                    sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce * materialJumpBoost);
-                    puedoSaltar = false;
-
+                if(!godMode){
+                    if (puedoSaltar)
+                    {
+                        var jumpImpulseForce = 1000;
+                        sphereBody.Awake = true;
+                        sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce * materialJumpBoost);
+                        puedoSaltar = false;
+                    }
                 }
+                else sphereBody.Pose.Position.Y += velocidadGodMode;
             }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.LeftShift) && godMode) sphereBody.Pose.Position.Y -= velocidadGodMode;
 
             velocidadAngularYAnt = sphereBody.Velocity.Angular.Y;
             velocidadLinearYAnt = sphereBody.Velocity.Linear.Y;
@@ -909,7 +938,7 @@ namespace SomosLaBola
 
             sphereBody.Velocity.Linear = finalVelocity;
 
-            if (Keyboard.GetState().IsKeyDown(Keys.R) || PositionE.Y < -2000)
+            if (Keyboard.GetState().IsKeyDown(Keys.R) || PositionE.Y < -2000 || Keyboard.GetState().IsKeyDown(Keys.P))
             {
                 powerUps = new List<Trigger>(initialPowerUps);
                 Player.resetStatus();
