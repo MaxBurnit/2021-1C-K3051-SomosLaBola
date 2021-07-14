@@ -21,6 +21,7 @@ using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Microsoft.Xna.Framework.Media;
+using SomosLaBola.Obstaculos.Recorridos;
 using SomosLaBola.PlayerInfo;
 using SomosLaBola.Powerups;
 using Vector4 = Microsoft.Xna.Framework.Vector4;
@@ -82,6 +83,8 @@ namespace SomosLaBola
         private Effect EfectoBasico { get; set; }
         private Effect EfectoEM { get; set; }
         private Model Sphere { get; set; }
+
+        private Model Cube { get; set; }
         private Vector3 SpherePosition { get; set; }
         public Matrix SphereWorld { get; private set; }
         private CubePrimitive Box { get; set; }
@@ -91,6 +94,7 @@ namespace SomosLaBola
 
         private ObstaculoMovil obstaculoEsfera;
 
+        private ObstaculoMovil obstMovil { get; set; }
         //Matrix
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
@@ -109,6 +113,9 @@ namespace SomosLaBola
 
         //private Vector3 DesiredLookAt;
         private List<Matrix> MatrixWorld { get; set; }
+
+        private List<Matrix> MatrixWorldObs { get; set; }
+        
         private Floor Floor { get; set; }
 
         //private Vector3 ForwardDirection;
@@ -194,14 +201,18 @@ namespace SomosLaBola
 
             CubeMapCamera = new StaticCamera(1f, SpherePosition, Vector3.UnitX, Vector3.Up);
             CubeMapCamera.BuildProjection(1f, 1f, 3000f, MathHelper.PiOver2);
+
+
         }
 
         protected override void LoadContent()
         {
             SpriteFont = Content.Load<SpriteFont>(ContentFolderSpriteFonts + "Arial");
+            Cube = Content.Load<Model>(ContentFolderModels + "geometries/cube");
             // Aca es donde deberiamos cargar todos los contenido necesarios antes de iniciar el juego.
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             MatrixWorld = new List<Matrix>();
+            MatrixWorldObs = new List<Matrix>();
            // ObstaculoCubo = ObstaculoMovil.CrearObstaculoRecorridoCircular(Sphere, Matrix.CreateScale(0.1f, 0.1f, 0.1f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 13, -40)));
             LoadPhysics();
             generateMatrixWorld();
@@ -285,12 +296,11 @@ namespace SomosLaBola
             MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 600f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 2590f, pos.Y - 700f, pos.Z - 9300)));
             MatrixWorld.Add(Matrix.CreateScale(3000f, 2f, 300f)* Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 5890f, pos.Y - 700f, pos.Z - 9300)));
             MatrixWorld.Add(Matrix.CreateScale(600f, 2f, 900f)* Matrix.CreateRotationZ(-MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 9490f, pos.Y - 700f, pos.Z - 9300)));
-            
             float lastPosition=generateIndividualPlatforms(pos);
-
-
-            MatrixWorld.Add(Matrix.CreateScale(500f, 10f, 500f) * Matrix.CreateRotationZ(-MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + lastPosition + 500f+300f +300f, pos.Y - 700f, pos.Z - 9300)));
-                                                                                      //Es la misma traslación del bloque                                                    Es el doble del escalado del bloque.
+            MatrixWorld.Add(Matrix.CreateScale(500f, 10f, 500f) * Matrix.CreateRotationZ(-MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + lastPosition + 500f+300f +300f, pos.Y - 650f, pos.Z - 9300)));
+            MatrixWorldObs.Add(Matrix.CreateScale(50f, 50f, 50f) * Matrix.CreateRotationZ(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + 5890f, pos.Y-650f, pos.Z - 9600)));
+            createObstaculoMovil();
+            //Es la misma traslación del bloque                                                    Es el doble del escalado del bloque.
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 400f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 800f)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y + 28, pos.Z - 1800f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 30) * 2, 1000f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 5800)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 3000f * 2)), 0.1f)));
@@ -322,11 +332,11 @@ namespace SomosLaBola
             }
             return posAcum;
         }
-        /*private void createObstaculoMovil()
-        {
-              Matrix matrixWorldObs;
-              matrixWorldObs= Matrix.CreateScale(60f, 2f, 400f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 400f)
-        }*/
+        private void createObstaculoMovil()
+        {       
+           IRecorrido recorrido = new Vaiven(600f, 0.5f, 2);
+           obstMovil = new ObstaculoMovil(Cube, MatrixWorldObs[0], recorrido, Simulation, SphereHandles,this);
+        }
 
         private void LoadPhysics()
         {
@@ -371,12 +381,19 @@ namespace SomosLaBola
 
 
             var radius = 5f;
-            var sphereShape = new Sphere(radius); 
+            var sphereShape = new Sphere(radius);
             var position = Vector3Utils.toNumeric(PlayerInitialPosition);
 
           //var bodyDescription= BodyDescription.CreateDynamic(position, new BodyInertia { InverseMass =radius * radius * radius }, new CollidableDescription(Simulation.Shapes.Add(new Sphere(5f)), 0.1f, ContinuousDetectionSettings.Continuous(1e-3f, 1e-2f)), new BodyActivityDescription(0.01f));
             var bodyDescription = BodyDescription.CreateConvexDynamic(position, 1 / radius * radius * radius,
                Simulation.Shapes, sphereShape);
+
+            //bodyDescription.Collidable.Continuity.Mode = ContinuousDetectionMode.Continuous;
+
+            /*
+            var settings = ContinuousDetectionSettings.Continuous(30, 30);
+            bodyDescription.Collidable.Continuity = settings;
+            */
 
             var bodyHandle = Simulation.Bodies.Add(bodyDescription);
 
@@ -391,11 +408,12 @@ namespace SomosLaBola
             foreach (var mesh in model.Meshes)
                 ((BasicEffect)mesh.Effects.FirstOrDefault())?.EnableDefaultLighting();
         }
-
+        float time;
         protected override void Draw(GameTime gameTime)
         {
             // Aca deberiamos poner toda la logia de renderizado del juego.
             GraphicsDevice.Clear(Color.Black);
+           
 
             if (status == ST_PRESENTACION)
             {
@@ -446,6 +464,7 @@ namespace SomosLaBola
 
                 case M_Goma :
                     Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
+                    Efecto.CurrentTechnique = Efecto.Techniques["BasicColorDrawing"];
 
                     Efecto.Parameters["KAmbient"]?.SetValue(KAmbientGoma);
                     Efecto.Parameters["KDiffuse"]?.SetValue(KDiffuseGoma);
@@ -465,10 +484,10 @@ namespace SomosLaBola
                             {
                                 part.Effect = Efecto;
                                 var worldM = mesh.ParentBone.Transform * sphereWorld;
-                                Efecto.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
-                                var WorldViewProjection = worldM * Camera.View * Camera.Projection;
-                                Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
-                                Efecto.Parameters["InverseTransposeWorld"]
+                                part.Effect.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
+                                var worldViewProjection = worldM * Camera.View * Camera.Projection;
+                                part.Effect.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
+                                part.Effect.Parameters["InverseTransposeWorld"]
                                     ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
                             }
 
@@ -476,9 +495,13 @@ namespace SomosLaBola
                         }
                     });
 
+
                     GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                     GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
                     createStage(Camera);
+                    time += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    obstMovil.Draw(time, Camera.View, Camera.Projection);
+                    
                     break;
 
                 default :  
@@ -497,6 +520,7 @@ namespace SomosLaBola
 
                     DrawEnvironmentMap();
                     break;
+                    
             }
             
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
@@ -558,6 +582,7 @@ namespace SomosLaBola
             Efecto.CurrentTechnique = Efecto.Techniques["EnvironmentMapSphere"];
             Efecto.Parameters["environmentMap"]?.SetValue(EnvironmentMapRenderTarget);
 
+
             SpheresWorld.ForEach(sphereWorld => {
                 var mesh = Sphere.Meshes.FirstOrDefault();
                 if (mesh != null)
@@ -597,28 +622,27 @@ namespace SomosLaBola
 
                  var scale = 1 / (meshScale.X / trigger.BoundingSphere.Radius);
 
-                 Efecto.CurrentTechnique = Efecto.Techniques["SetColorDrawing"];
+                 EfectoBasico.CurrentTechnique = EfectoBasico.Techniques["SetColorDrawing"];
 
 
                  var color = trigger.Color().ToVector4();
                  color.W = 0.2f;
 
-                 Efecto.Parameters["Color"]?.SetValue(color);
-                 Efecto.Parameters["ambientColor"]?.SetValue(Vector3.One);
+                 EfectoBasico.Parameters["Color"]?.SetValue(color);
+                 EfectoBasico.Parameters["ambientColor"]?.SetValue(Vector3.One);
 
                 foreach (var part in mesh.MeshParts)
                 {
-                    part.Effect = Efecto;
+                    part.Effect = EfectoBasico;
                     var worldM = mesh.ParentBone.Transform * Matrix.CreateScale(scale)  * worldMatrix;
-                    Efecto.Parameters["World"]?.SetValue(worldM);
+                    EfectoBasico.Parameters["World"]?.SetValue(worldM);
                     var worldViewProjection = worldM * Camera.View * Camera.Projection;
-                    Efecto.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
-                    Efecto.Parameters["InverseTransposeWorld"]
+                    EfectoBasico.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
+                    EfectoBasico.Parameters["InverseTransposeWorld"]
                         ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
                 }
 
-                mesh.Draw();
-                Efecto.CurrentTechnique = Efecto.Techniques["BasicColorDrawing"];
+                mesh.Draw();;
              }
 
              /*
