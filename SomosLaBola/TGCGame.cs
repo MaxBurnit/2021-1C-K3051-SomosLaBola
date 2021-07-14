@@ -88,6 +88,7 @@ namespace SomosLaBola
         //Matrix
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
+        private Matrix QuadWorld;
 
         //Textures
         private Texture2D GomaTexture { get; set; }
@@ -96,7 +97,9 @@ namespace SomosLaBola
 
         private const int EnvironmentmapSize = 2048;
         private RenderTargetCube EnvironmentMapRenderTarget { get; set; }
-
+        private StaticCamera CubeMapCamera { get; set; }
+        private Effect DebugTextureEffect { get; set; }
+        private FullScreenQuad FullScreenQuad { get; set; }
 
         //private Vector3 DesiredLookAt;
         private List<Matrix> MatrixWorld { get; set; }
@@ -126,16 +129,16 @@ namespace SomosLaBola
         public int ProxMaterial = M_Goma;
 
         public float KAmbientGoma = 0.8f;
-        public float KDiffuseGoma = 0.8f;
-        public float KSpecularGoma = 0.4f;
+        public float KDiffuseGoma = 0.6f;
+        public float KSpecularGoma = 0.8f;
 
         public float KAmbientMetal = 0.9f;
-        public float KDiffuseMetal = 0.8f;
+        public float KDiffuseMetal = 0.6f;
         public float KSpecularMetal = 0.8f;
 
         public float KAmbientMadera = 0.5f;
         public float KDiffuseMadera = 0.5f;
-        public float KSpecularMadera = 0.3f;
+        public float KSpecularMadera = 0.4f;
         
 
         private bool MPresionada;
@@ -177,6 +180,8 @@ namespace SomosLaBola
             FloorWorld = Matrix.CreateScale(2000, 0.1f, 2000) * Matrix.CreateTranslation(BoxPosition);
             SphereWorld = Matrix.CreateScale(0.02f);
 
+            CubeMapCamera = new StaticCamera(1f, SpherePosition, Vector3.UnitX, Vector3.Up);
+            CubeMapCamera.BuildProjection(1f, 1f, 3000f, MathHelper.PiOver2);
         }
 
         protected override void LoadContent()
@@ -225,10 +230,16 @@ namespace SomosLaBola
             // Un mesh puede tener mas de 1 mesh part (cada 1 puede tener su propio efecto).
             //foreach (var meshPart in mesh.MeshParts)
             //  meshPart.Effect = Efecto;
-            
+
             foreach (var meshPart in Sphere.Meshes.SelectMany(mesh => mesh.MeshParts))
                 meshPart.Effect = Efecto;
 
+            DebugTextureEffect = Content.Load<Effect>(ContentFolderEffects + "DebugTexture");
+            DebugTextureEffect.CurrentTechnique = DebugTextureEffect.Techniques["DebugCubeMap"];
+
+            FullScreenQuad = new FullScreenQuad(GraphicsDevice);
+
+            QuadWorld = Matrix.CreateScale(new Vector3(0.9f, 0.2f, 0f)) * Matrix.CreateTranslation(Vector3.Down * 0.7f);
 
             base.LoadContent();
         }
@@ -383,8 +394,6 @@ namespace SomosLaBola
             }
 
             //Box.Draw(FloorWorld, Camera.View, Camera.Projection);
-            createStage();
-
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
 
             var playerTexture = Material switch
@@ -392,14 +401,13 @@ namespace SomosLaBola
                     M_Goma => GomaTexture,
                     M_Metal => MetalTexture,
                     M_Madera => MaderaTexture,
-                    _ => GomaTexture
+                    _ => MaderaTexture
                 };
 
             switch(Material){
                 case M_Metal :
-                    Efecto.CurrentTechnique = Efecto.Techniques["EnvironmentMapSphere"];
                     Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
-                    Efecto.Parameters["environmentMap"]?.SetValue(EnvironmentMapRenderTarget);
+                    Efecto.Parameters["reflectionLevel"]?.SetValue(0.2f);
 
                     Efecto.Parameters["KAmbient"]?.SetValue(KAmbientMetal);
                     Efecto.Parameters["KDiffuse"]?.SetValue(KDiffuseMetal);
@@ -411,52 +419,10 @@ namespace SomosLaBola
                     Efecto.Parameters["diffuseColor"]?.SetValue(Color.Gray.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
-                    SpheresWorld.ForEach(sphereWorld => {
-                        var mesh = Sphere.Meshes.FirstOrDefault();
-                        if (mesh != null)
-                        foreach (var part in mesh.MeshParts)
-                        {
-                            part.Effect = Efecto;
-                            var worldM = mesh.ParentBone.Transform * sphereWorld;
-                            Efecto.Parameters["World"]?.SetValue(worldM);
-                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
-                            Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
-                            Efecto.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
-                        }
-
-                        mesh.Draw();
-                    });
+                    DrawEnvironmentMap();
                     break;
-                case M_Madera :
-                    Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
 
-                    Efecto.Parameters["KAmbient"]?.SetValue(KAmbientMadera);
-                    Efecto.Parameters["KDiffuse"]?.SetValue(KDiffuseMadera);
-                    Efecto.Parameters["KSpecular"]?.SetValue(KSpecularMadera);
-
-                    Efecto.Parameters["shininess"]?.SetValue(1f);
-
-                    Efecto.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
-                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
-                    Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
-
-                    SpheresWorld.ForEach(sphereWorld => {
-                        var mesh = Sphere.Meshes.FirstOrDefault();
-                        if (mesh != null)
-                        foreach (var part in mesh.MeshParts)
-                        {
-                            part.Effect = Efecto;
-                            var worldM = mesh.ParentBone.Transform * sphereWorld;
-                            Efecto.Parameters["World"]?.SetValue(mesh.ParentBone.Transform * sphereWorld);
-                            var WorldViewProjection = worldM * Camera.View * Camera.Projection;
-                            Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
-                            Efecto.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
-                        }
-
-                        mesh.Draw();
-                    });
-                    break;
-                default : 
+                case M_Goma :
                     Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
 
                     Efecto.Parameters["KAmbient"]?.SetValue(KAmbientGoma);
@@ -484,7 +450,28 @@ namespace SomosLaBola
 
                         mesh.Draw();
                     });
-                break;
+
+                    GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+                    GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
+                    createStage(Camera);
+                    break;
+
+                default :  
+                    Efecto.Parameters["ModelTexture"]?.SetValue(playerTexture);
+                    Efecto.Parameters["reflectionLevel"]?.SetValue(0.06f);
+
+                    Efecto.Parameters["KAmbient"]?.SetValue(KAmbientMadera);
+                    Efecto.Parameters["KDiffuse"]?.SetValue(KDiffuseMadera);
+                    Efecto.Parameters["KSpecular"]?.SetValue(KSpecularMadera);
+
+                    Efecto.Parameters["shininess"]?.SetValue(1f);
+
+                    Efecto.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
+                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
+                    Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
+
+                    DrawEnvironmentMap();
+                    break;
             }
             
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
@@ -518,6 +505,87 @@ namespace SomosLaBola
             SpriteBatch.End();
             
 
+        }
+
+         private void DrawEnvironmentMap()
+        {
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
+
+            for (var face = CubeMapFace.PositiveX; face <= CubeMapFace.NegativeZ; face++)
+            {
+                GraphicsDevice.SetRenderTarget(EnvironmentMapRenderTarget, face);
+                GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
+
+                SetCubemapCameraForOrientation(face);
+                CubeMapCamera.BuildView();
+
+                createStage(CubeMapCamera);
+            }
+
+            GraphicsDevice.SetRenderTarget(null);
+            GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
+
+            createStage(Camera);
+
+            Efecto.CurrentTechnique = Efecto.Techniques["EnvironmentMapSphere"];
+            Efecto.Parameters["environmentMap"]?.SetValue(EnvironmentMapRenderTarget);
+
+            SpheresWorld.ForEach(sphereWorld => {
+                var mesh = Sphere.Meshes.FirstOrDefault();
+                if (mesh != null)
+                foreach (var part in mesh.MeshParts)
+                {
+                    part.Effect = Efecto;
+                    var worldM = mesh.ParentBone.Transform * sphereWorld;
+                    Efecto.Parameters["World"]?.SetValue(worldM);
+                    var WorldViewProjection = worldM * Camera.View * Camera.Projection;
+                    Efecto.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                    Efecto.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+                }
+                mesh.Draw();
+            });
+
+            //DebugTextureEffect.Parameters["World"].SetValue(QuadWorld);
+            //DebugTextureEffect.Parameters["cubeMapTexture"]?.SetValue(EnvironmentMapRenderTarget);
+            FullScreenQuad.Draw(DebugTextureEffect);
+        }
+
+        private void SetCubemapCameraForOrientation(CubeMapFace face)
+        {
+            switch (face)
+            {
+                default:
+                case CubeMapFace.PositiveX:
+                    CubeMapCamera.FrontDirection = -Vector3.UnitX;
+                    CubeMapCamera.UpDirection = Vector3.Down;
+                    break;
+
+                case CubeMapFace.NegativeX:
+                    CubeMapCamera.FrontDirection = Vector3.UnitX;
+                    CubeMapCamera.UpDirection = Vector3.Down;
+                    break;
+
+                case CubeMapFace.PositiveY:
+                    CubeMapCamera.FrontDirection = Vector3.Down;
+                    CubeMapCamera.UpDirection = Vector3.UnitZ;
+                    break;
+
+                case CubeMapFace.NegativeY:
+                    CubeMapCamera.FrontDirection = Vector3.Up;
+                    CubeMapCamera.UpDirection = -Vector3.UnitZ;
+                    break;
+
+                case CubeMapFace.PositiveZ:
+                    CubeMapCamera.FrontDirection = -Vector3.UnitZ;
+                    CubeMapCamera.UpDirection = Vector3.Down;
+                    break;
+
+                case CubeMapFace.NegativeZ:
+                    CubeMapCamera.FrontDirection = Vector3.UnitZ;
+                    CubeMapCamera.UpDirection = Vector3.Down;
+                    break;
+            }
         }
 
         /// <summary>
@@ -585,6 +653,7 @@ namespace SomosLaBola
            
 
             Camera.Update(gameTime, SpherePositionM);
+            CubeMapCamera.Position = SpherePositionM;
 
             Timer += (float) gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -646,6 +715,13 @@ namespace SomosLaBola
 
             var materialSpeedBoost = Material switch
             {
+                M_Goma => 0.9f,
+                M_Metal => 1.3f,
+                _ => 1
+            };
+
+            var materialJumpBoost = Material switch
+            {
                 M_Goma => 1.75f,
                 M_Metal => 0.9f,
                 _ => 1
@@ -685,7 +761,7 @@ namespace SomosLaBola
                 {
                     var jumpImpulseForce = 1000;
                     sphereBody.Awake = true;
-                    sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce * materialSpeedBoost);
+                    sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce * materialJumpBoost);
                     puedoSaltar = false;
 
                 }
@@ -702,8 +778,8 @@ namespace SomosLaBola
                 sphereBody.Velocity.Angular = NumericVector3.Zero;
                 puedoSaltar = true;
                 Material = ProxMaterial;
-                if(Material == M_Metal) Efecto = EfectoEM;
-                else Efecto = EfectoBasico;
+                if(Material == M_Goma) Efecto = EfectoBasico;
+                else Efecto = EfectoEM;
             }
 
             var pose = sphereBody.Pose;
@@ -743,12 +819,14 @@ namespace SomosLaBola
         }
 
 
-        private void createStage()
+        private void createStage(Camera Camera)
         {
             for (int i = 0; i < MatrixWorld.Count(); i++)
             {
                 Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection);
             }
+            
+            Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
             // worldMatrix=generarCubosRectos(4);
             // Floor.draw();
         }
