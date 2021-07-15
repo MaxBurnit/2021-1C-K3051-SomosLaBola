@@ -34,8 +34,8 @@ Los recursos usados se almacenan utilizando [Git LFS](https://git-lfs.github.com
 Foto         |  Apellido, Nombre	
 ------------ | -------------
 <img src="https://user-images.githubusercontent.com/31711755/125712722-991818dd-75d8-426f-a3be-2125fefaf3c7.png" width="200"> | Álvarez Pérez, Mariano Nicolás	
-x            | Cano, Lucas Martin
-<img src="https://user-images.githubusercontent.com/62356300/125712758-b7d51a6b-1a84-42bf-8224-9daac0274306.jpeg" width="200"> | Fernández, Ignacio 
+<img src= "https://user-images.githubusercontent.com/38499500/125713560-b0ef033c-88dc-415a-84c3-b9f24909ff21.jpg" width="200">| Cano, Lucas Martin
+<img src="https://user-images.githubusercontent.com/62356300/125712758-b7d51a6b-1a84-42bf-8224-9daac0274306.jpeg" width="200">| Fernández, Ignacio 
 
 ## Capturas
 ![screenshot1](https://github.com/MaxBurnit/2021-1C-K3051-SomosLaBola/blob/master/SomosLaBola/Screenshots/Screenshot%20Primera%20Pantalla.png)
