@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using BepuPhysics;
 using BepuPhysics.Collidables;
-using BepuPhysics.Constraints;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SomosLaBola.Obstaculos.Recorridos;
@@ -35,20 +33,6 @@ namespace SomosLaBola.Obstaculos
             Effect = Game.Content.Load<Effect>(ContentFolderEffects + "PlatformShader");
             Texture = Game.Content.Load<Texture2D>(ContentFolderTextures + "Platform");
 
-            /*
-            Simulation.Solver.Add(boxBodyHandle, SphereHandles[0],
-                    new AngularAxisMotor
-                    {
-                        LocalAxisA = System.Numerics.Vector3.UnitY,
-                        TargetVelocity = 5f,
-                        Settings = new MotorSettings(5, 0.0001f)
-                    });
-            foreach (ModelMesh mesh in model.Meshes)
-            foreach (var part in mesh.MeshParts)
-            {
-                part.Effect = Effect;
-            }
-            */
 
             previusPosition = Vector3Utils.toNumeric(transformaciones.Translation);
         }

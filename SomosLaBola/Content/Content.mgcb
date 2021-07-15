@@ -323,6 +323,12 @@
 /processorParam:Quality=Best
 /build:Sounds/campanadas horas.wav
 
+#begin Sounds/jump_05.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/jump_05.wav
+
 #begin SpriteFonts/Arial.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor

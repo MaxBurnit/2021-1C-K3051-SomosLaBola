@@ -25,6 +25,7 @@ using SomosLaBola.Obstaculos.Recorridos;
 using SomosLaBola.PlayerInfo;
 using SomosLaBola.Powerups;
 using Vector4 = Microsoft.Xna.Framework.Vector4;
+using Microsoft.Xna.Framework.Audio;
 
 namespace SomosLaBola
 {
@@ -90,10 +91,6 @@ namespace SomosLaBola
         private CubePrimitive Box { get; set; }
         private Vector3 BoxPosition { get; set; }
 
-        private Model TankModel { get; set; }
-
-        private ObstaculoMovil obstaculoEsfera;
-
         private ObstaculoMovil obstMovil { get; set; }
         //Matrix
         public Matrix FloorWorld { get; set; }
@@ -115,7 +112,12 @@ namespace SomosLaBola
         private List<Matrix> MatrixWorld { get; set; }
 
         private List<Matrix> MatrixWorldObs { get; set; }
-        
+
+        private SoundEffect Sound { get; set; }
+
+        private SoundEffectInstance SoundEffectInstance { get; set; }
+
+        private String SoundName { get; set; }
         private Floor Floor { get; set; }
 
         //private Vector3 ForwardDirection;
@@ -220,7 +222,7 @@ namespace SomosLaBola
             Floor = new Floor(this);
 
             Sphere = Content.Load<Model>(ContentFolderModels + "geometries/sphere");
-            TankModel = Content.Load<Model>(ContentFolder3D + "tank/tank");
+            
 
             GomaTexture = Content.Load<Texture2D>(ContentFolderTextures + "rubber");
             MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "metal-bola");
@@ -257,6 +259,8 @@ namespace SomosLaBola
 
             SongName = "funkorama";
             Song = Content.Load<Song>(ContentFolderMusic + SongName);
+            SoundName = "jump_05";
+            Sound = Content.Load<SoundEffect>(ContentFolderSounds + SoundName);
             MediaPlayer.Play(Song);
             // Asigno el efecto que cargue a cada parte del mesh.
             // Un modelo puede tener mas de 1 mesh internamente.
@@ -313,7 +317,7 @@ namespace SomosLaBola
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 290f, pos.Y + 100f, pos.Z - 9000)), new CollidableDescription(Simulation.Shapes.Add(new Box(10f * 2, (pos.Y + 100) * 2, 200f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y + 100f, pos.Z - 9810)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f * 2, (pos.Y + 100f) * 2, 10f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 2590f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f * 2, (pos.Y + 2) * 2, 600f * 2)), 0.1f)));
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 5890f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(3000f * 2, (pos.Y + 2) * 2, 500f * 2)), 0.1f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 5890f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(3000f * 2, (pos.Y + 2) * 2, 300f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 9490f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(600f * 2, (pos.Y + 2) * 2, 1000f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + lastPosition + 500f + 300f+ 300f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(500f * 2, (pos.Y + 10f) * 2, 500 * 2)), 0.1f)));
 
@@ -698,10 +702,12 @@ namespace SomosLaBola
         /// </summary>
         protected override void Update(GameTime gameTime)
         {
+           
             if (status == ST_PRESENTACION)
             {
                 if (Keyboard.GetState().IsKeyDown(Keys.Space))
                 {
+                    
                     status = ST_STAGE;
                 }
 
@@ -815,6 +821,8 @@ namespace SomosLaBola
 
         private void UpdatePhysics()
         {
+            SoundEffectInstance = Sound.CreateInstance();
+            SoundEffectInstance.Volume = 0.4F;
             //Physics
             Simulation.Timestep(1/ 60f, ThreadDispatcher);
             SpheresWorld.Clear();
@@ -906,6 +914,7 @@ namespace SomosLaBola
                 if(!godMode){
                     if (puedoSaltar)
                     {
+                        SoundEffectInstance.Play(); 
                         var jumpImpulseForce = 1000;
                         sphereBody.Awake = true;
                         sphereBody.ApplyLinearImpulse(NumericVector3Utils.Up * jumpImpulseForce * materialJumpBoost);
