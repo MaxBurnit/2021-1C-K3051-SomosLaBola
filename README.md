@@ -40,7 +40,7 @@ x            | Lucas Martin, Cano
 x            | Ignacio, Fernández
 
 ## Capturas
-![screenshot1](https://github.com/tgc-utn/tgc-monogame-tp/blob/master/TGC.MonoGame.TP/Icon.bmp)
+![screenshot1](https://github.com/MaxBurnit/2021-1C-K3051-SomosLaBola/blob/master/SomosLaBola/Screenshots/Screenshot%20Primera%20Pantalla.png)
 ![screenshot2](https://github.com/MaxBurnit/2021-1C-K3051-SomosLaBola/blob/master/SomosLaBola/Screenshots/Screenshot%20Pelota%20de%20Goma.png)
 ![screenshot3](https://github.com/MaxBurnit/2021-1C-K3051-SomosLaBola/blob/master/SomosLaBola/Screenshots/Screenshot%20Pelota%20de%20Metal.png)
 
