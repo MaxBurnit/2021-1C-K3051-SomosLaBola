@@ -35,7 +35,7 @@ Foto         |  Apellido, Nombre
 ------------ | -------------
 x            | Álvarez Pérez, Mariano Nicolás	
 x            | Cano, Lucas Martin 	
-x            | Fernández, Ignacio 
+![PerfilAV2](https://user-images.githubusercontent.com/62356300/125712582-3fb01753-a096-4c6c-984c-3a93d301b81c.jpeg)| Fernández, Ignacio 
 
 ## Capturas
 ![screenshot1](https://github.com/MaxBurnit/2021-1C-K3051-SomosLaBola/blob/master/SomosLaBola/Screenshots/Screenshot%20Primera%20Pantalla.png)
