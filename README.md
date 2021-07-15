@@ -43,4 +43,4 @@ x            | Fernández, Ignacio
 ![screenshot3](https://github.com/MaxBurnit/2021-1C-K3051-SomosLaBola/blob/master/SomosLaBola/Screenshots/Screenshot%20Pelota%20de%20Metal.png)
 
 ## Game Play
-[![Watch the video](https://img.youtube.com/vi/uooOFALRNfE/0.jpg)](https://youtu.be/uooOFALRNfE)
+[![Watch the video](https://img.youtube.com/vi/uooOFALRNfE/mqdefault.jpg)](https://youtu.be/uooOFALRNfE)
