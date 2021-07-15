@@ -5,7 +5,8 @@
 [#BuiltWithMonoGame](http://www.monogame.net) and [.NET Core](https://dotnet.microsoft.com)
 
 ## Descripción
-Proyecto plantilla para los trabajos prácticos de la asignatura electiva [Técnicas de Gráficos por Computadora](http://tgc-utn.github.io/) (TGC) en la carrera de Ingeniería en Sistemas de Información. Universidad Tecnológica Nacional, Facultad Regional Buenos Aires (UTN-FRBA).
+Juego basado en la idea "Third Person Platform - Marble It Up!".
+El jugador es una bola que avanza, retrocede, se mueve a los lados y salta. El objetivo es llegar a todos los checkpoints esquivando los obstaculos y avanzando por las plataformas. El jugador pueda hacer uso de 3 distintos tipos de bola con distintas características y obtener mejoras temporales activando powerUps esparcidos por el nivel para lograr el objetivo.
 
 ## Requisitos
 * [.NET Core SDK](https://docs.microsoft.com/dotnet/core/install/sdk)
