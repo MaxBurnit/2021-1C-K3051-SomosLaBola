@@ -34,10 +34,8 @@ Los recursos usados se almacenan utilizando [Git LFS](https://git-lfs.github.com
 Foto         |  Apellido, Nombre	
 ------------ | -------------
 x            | Álvarez Pérez, Mariano Nicolás	
-x            | Maximiliano Emanuel, Barneto	
-x            | Cristian Manuel, Cali	
-x            | Lucas Martin, Cano	
-x            | Ignacio, Fernández
+x            | Cano, Lucas Martin 	
+x            | Fernández, Ignacio 
 
 ## Capturas
 ![screenshot1](https://github.com/MaxBurnit/2021-1C-K3051-SomosLaBola/blob/master/SomosLaBola/Screenshots/Screenshot%20Primera%20Pantalla.png)
