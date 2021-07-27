@@ -93,18 +93,12 @@ float4 EnvironmentMapPS(VertexShaderOutput input) : COLOR
 
 	//Normalizar vectores
 	float3 normal = normalize(input.Normal.xyz);
-    
-	// Get the texel from the texture
-	float3 baseColor = tex2D(textureSampler, input.TextureCoordinates).rgb;
-	
-    // Not part of the mapping, just adjusting color
-    baseColor = lerp(baseColor, finalLightColor.rgb, 0.5); 
-    
+ 
 	//Obtener texel de CubeMap
 	float3 view = normalize(eyePosition.xyz - input.WorldPosition.xyz);
 	float3 reflection = reflect(view, normal);
 	float3 reflectionColor = texCUBE(environmentMapSampler, reflection).rgb;
-    return float4(lerp(baseColor, reflectionColor, reflectionLevel), 1);
+    return float4(lerp(finalLightColor, reflectionColor, reflectionLevel), 1);
 }
 
 

@@ -35,16 +35,32 @@ namespace SomosLaBola.Geometries.Textures
         {
             base.Update(gameTime);
         }
-        public void Draw(Matrix world, Matrix view, Matrix projection)
+        public void Draw(Matrix world, Matrix view, Matrix projection, Vector3 cameraPosition, Vector3 lightPosition)
         {
             
             foreach (ModelMesh mesh in Cube.Meshes)
             {
                 Effect.Parameters["World"].SetValue(world);
-                Effect.Parameters["View"].SetValue(view);
-                Effect.Parameters["Projection"].SetValue(projection);
-                Effect.Parameters["ModelTexture"].SetValue(Texture);
+                var WorldViewProjection = world * view * projection;
+                Effect.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                Effect.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(world)));
+
+                Effect.Parameters["ModelTexture"]?.SetValue(Texture);
+
+                Effect.Parameters["KAmbient"]?.SetValue(0.8f);
+                Effect.Parameters["KDiffuse"]?.SetValue(0.8f);
+                Effect.Parameters["KSpecular"]?.SetValue(0.4f);
+
+                Effect.Parameters["shininess"]?.SetValue(1f);
+
+                Effect.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
+                Effect.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
+                Effect.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
+
+                Effect.Parameters["eyePosition"]?.SetValue(cameraPosition);
+                Effect.Parameters["lightPosition"]?.SetValue(lightPosition);
                 Effect.CurrentTechnique = Effect.Techniques["PlatformShading"];
+
                 mesh.Draw();
             }
             //Cube.Draw(world,view,projection);

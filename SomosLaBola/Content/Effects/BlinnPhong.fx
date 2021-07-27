@@ -21,7 +21,7 @@ float shininess;
 float3 lightPosition;
 float3 eyePosition; // Camera position
 
-texture ModelTexture;
+texture2D ModelTexture;
 sampler2D textureSampler = sampler_state
 {
     Texture = (ModelTexture);
@@ -78,7 +78,7 @@ float4 MainPS(VertexShaderOutput input) : COLOR
     
     // Final calculation
     float4 finalColor = float4(saturate(ambientColor * KAmbient + diffuseLight) * texelColor.rgb + specularLight, texelColor.a);
-    return finalColor;
+    return finalColor; 
 
 }
 

@@ -128,6 +128,7 @@ namespace SomosLaBola
         private Vector3 PlayerInitialPosition = Checkpoint.CurrentCheckpoint;
 
         private SkyBox Skybox;
+        private Vector3 lightPosition;
 
         public const int ST_PRESENTACION = 0;
         public const int ST_STAGE = 1;
@@ -251,7 +252,7 @@ namespace SomosLaBola
             var skyBox = Content.Load<Model>("3D/skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
             var skyBoxEffect = Content.Load<Effect>(ContentFolderEffects + "SkyBox");
-            Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, Camera.FarPlane/2);
+            Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, Camera.FarPlane-1);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             EnvironmentMapRenderTarget = new RenderTargetCube(GraphicsDevice, EnvironmentmapSize, false,
@@ -455,7 +456,7 @@ namespace SomosLaBola
                     Efecto.Parameters["shininess"]?.SetValue(1f);
 
                     Efecto.Parameters["ambientColor"]?.SetValue(Color.LightGray.ToVector3());
-                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Gray.ToVector3());
+                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Black.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
                     DrawEnvironmentMap();
@@ -473,7 +474,7 @@ namespace SomosLaBola
                     Efecto.Parameters["shininess"]?.SetValue(1f);
 
                     Efecto.Parameters["ambientColor"]?.SetValue(Color.MonoGameOrange.ToVector3());
-                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.MonoGameOrange.ToVector3());
+                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Black.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
                     SpheresWorld.ForEach(sphereWorld => {
@@ -513,7 +514,7 @@ namespace SomosLaBola
                     Efecto.Parameters["shininess"]?.SetValue(1f);
 
                     Efecto.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
-                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
+                    Efecto.Parameters["diffuseColor"]?.SetValue(Color.Black.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
                     DrawEnvironmentMap();
@@ -557,7 +558,7 @@ namespace SomosLaBola
 
             checkpoints.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
             powerUps.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
-            obstMovil.Draw(gameTime, Camera.View, Camera.Projection);
+            /*obstMovil.Draw(gameTime, Camera.View, Camera.Projection);*/
 
 
         }
@@ -607,7 +608,7 @@ namespace SomosLaBola
         }
 
 
-         private void DrawTrigger(Trigger trigger, float tiempoTranscurrido)
+        private void DrawTrigger(Trigger trigger, float tiempoTranscurrido)
          {
              GraphicsDevice.BlendState = BlendState.AlphaBlend;
 
@@ -657,6 +658,7 @@ namespace SomosLaBola
             a.Draw(worldMatrix, Camera.View, Camera.Projection);
              */
          }
+
 
         private void SetCubemapCameraForOrientation(CubeMapFace face)
         {
@@ -775,7 +777,7 @@ namespace SomosLaBola
 
             Timer += (float) gameTime.ElapsedGameTime.TotalSeconds;
 
-            var lightPosition = new Vector3((float) Math.Cos(Timer) * 700f, 800f, (float) Math.Sin(Timer) * 700f);
+            lightPosition = new Vector3(4000f, 1000f, 4000f);
             Efecto.Parameters["eyePosition"]?.SetValue(Camera.Position);
             Efecto.Parameters["lightPosition"]?.SetValue(lightPosition);
 
@@ -1002,7 +1004,7 @@ namespace SomosLaBola
         {
             for (int i = 0; i < MatrixWorld.Count(); i++)
             {
-                Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection);
+                Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection, Camera.Position, lightPosition);
             }
             
             Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
