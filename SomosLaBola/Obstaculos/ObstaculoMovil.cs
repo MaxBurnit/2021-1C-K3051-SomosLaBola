@@ -27,7 +27,9 @@ namespace SomosLaBola.Obstaculos
             this.recorrido = recorrido;
             this.transformaciones = transformaciones;
             this.Simulation = simulation;
-            var boxBodyHandle = Simulation.Bodies.Add(BodyDescription.CreateKinematic(new RigidPose(new System.Numerics.Vector3(transformaciones.Translation.X, transformaciones.Translation.Y, transformaciones.Translation.Z)), new CollidableDescription(Simulation.Shapes.Add(new Box(100f, 100f, 100f)), 0.1f), new BodyActivityDescription(-1f)));
+            var boxBodyHandle = Simulation.Bodies.Add(BodyDescription.CreateKinematic(new RigidPose(new System.Numerics.Vector3(
+                transformaciones.Translation.X, transformaciones.Translation.Y, transformaciones.Translation.Z)), 
+                new CollidableDescription(Simulation.Shapes.Add(new Box(100f, 100f, 100f)), 0.1f), new BodyActivityDescription(-1f)));
             BoxBodyHandles.Add(boxBodyHandle);
 
             Effect = Game.Content.Load<Effect>(ContentFolderEffects + "PlatformShader");

@@ -869,7 +869,7 @@ namespace SomosLaBola
                 _ => 1
             };
 
-           var velocidadGodMode = 3;
+           var velocidadGodMode = 30;
 
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
@@ -877,7 +877,7 @@ namespace SomosLaBola
                     sphereBody.Awake = true;
                     sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + forward * playerAceleration * materialSpeedBoost;
                 } 
-                else sphereBody.Pose.Position.Z -= velocidadGodMode;
+                else sphereBody.Pose.Position += forward * velocidadGodMode;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
@@ -886,7 +886,7 @@ namespace SomosLaBola
                     sphereBody.Awake = true;
                     sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + backward * playerAceleration * materialSpeedBoost;
                 } 
-                else sphereBody.Pose.Position.Z += velocidadGodMode;
+                else sphereBody.Pose.Position += backward * velocidadGodMode;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
@@ -895,7 +895,7 @@ namespace SomosLaBola
                     sphereBody.Awake = true;
                     sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + left * playerAceleration * materialSpeedBoost;
                 }
-                else sphereBody.Pose.Position.X -= velocidadGodMode;
+                else sphereBody.Pose.Position += left * velocidadGodMode;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
@@ -904,7 +904,7 @@ namespace SomosLaBola
                     sphereBody.Awake = true;
                     sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + right * playerAceleration * materialSpeedBoost;
                  } 
-                else sphereBody.Pose.Position.X += velocidadGodMode;
+                else sphereBody.Pose.Position += right * velocidadGodMode;
             }
 
             if(MathHelper.Distance(sphereBody.Velocity.Linear.Y, velocidadLinearYAnt) < 0.5 
