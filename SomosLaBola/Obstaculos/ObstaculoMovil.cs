@@ -43,7 +43,7 @@ namespace SomosLaBola.Obstaculos
 
         private System.Numerics.Vector3 previusPosition;
 
-        public void Draw(GameTime gameTime, Matrix vista, Matrix proyeccion)
+        public void Draw(GameTime gameTime, Matrix vista, Matrix proyeccion, Vector3 cameraPosition, Vector3 lightPosition)
         {
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
             float deltaTiempo = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -61,10 +61,26 @@ namespace SomosLaBola.Obstaculos
             foreach (ModelMesh mesh in model.Meshes)
             {
                 Effect.Parameters["World"].SetValue(matrixMundoTrasladada);
-                Effect.Parameters["View"].SetValue(vista);
-                Effect.Parameters["Projection"].SetValue(proyeccion);
-                Effect.Parameters["ModelTexture"].SetValue(Texture);
+                var WorldViewProjection = matrixMundoTrasladada * vista * proyeccion;
+                Effect.Parameters["WorldViewProjection"]?.SetValue(WorldViewProjection);
+                Effect.Parameters["InverseTransposeWorld"]?.SetValue(Matrix.Invert(Matrix.Transpose(matrixMundoTrasladada)));
+
+                Effect.Parameters["ModelTexture"]?.SetValue(Texture);
+
+                Effect.Parameters["KAmbient"]?.SetValue(0.8f);
+                Effect.Parameters["KDiffuse"]?.SetValue(0.8f);
+                Effect.Parameters["KSpecular"]?.SetValue(0.4f);
+
+                Effect.Parameters["shininess"]?.SetValue(1f);
+
+                Effect.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
+                Effect.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
+                Effect.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
+
+                Effect.Parameters["eyePosition"]?.SetValue(cameraPosition);
+                Effect.Parameters["lightPosition"]?.SetValue(lightPosition);
                 Effect.CurrentTechnique = Effect.Techniques["PlatformShading"];
+
                 mesh.Draw();
             }
             

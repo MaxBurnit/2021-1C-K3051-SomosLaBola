@@ -252,7 +252,7 @@ namespace SomosLaBola
             var skyBox = Content.Load<Model>("3D/skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
             var skyBoxEffect = Content.Load<Effect>(ContentFolderEffects + "SkyBox");
-            Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, Camera.FarPlane-1);
+            Skybox = new SkyBox(skyBox, skyBoxTexture, skyBoxEffect, Camera.FarPlane/2);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             EnvironmentMapRenderTarget = new RenderTargetCube(GraphicsDevice, EnvironmentmapSize, false,
@@ -558,7 +558,7 @@ namespace SomosLaBola
 
             checkpoints.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
             powerUps.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
-            /*obstMovil.Draw(gameTime, Camera.View, Camera.Projection);*/
+            obstMovil.Draw(gameTime, Camera.View, Camera.Projection, Camera.Position, lightPosition);
 
 
         }
@@ -777,7 +777,7 @@ namespace SomosLaBola
 
             Timer += (float) gameTime.ElapsedGameTime.TotalSeconds;
 
-            lightPosition = new Vector3(4000f, 1000f, 4000f);
+            lightPosition = new Vector3(4000f, 200f, 4000f);
             Efecto.Parameters["eyePosition"]?.SetValue(Camera.Position);
             Efecto.Parameters["lightPosition"]?.SetValue(lightPosition);
 
