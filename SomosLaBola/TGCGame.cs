@@ -74,6 +74,7 @@ namespace SomosLaBola
 
         //Camera
         private TargetCamera Camera { get; set; }
+        private TargetCamera TargetLightCamera { get; set; }
 
         //Graphics
         private GraphicsDeviceManager Graphics { get; }
@@ -83,6 +84,8 @@ namespace SomosLaBola
         private Effect Efecto { get; set; }
         private Effect EfectoBasico { get; set; }
         private Effect EfectoEM { get; set; }
+        private Effect EfectoShadowMap { get; set; }
+
         private Model Sphere { get; set; }
 
         private Model Cube { get; set; }
@@ -95,26 +98,25 @@ namespace SomosLaBola
         //Matrix
         public Matrix FloorWorld { get; set; }
         public List<Matrix> SpheresWorld { get; private set; }
-        private Matrix QuadWorld;
 
         //Textures
         private Texture2D GomaTexture { get; set; }
         private Texture2D MetalTexture { get; set; }
         private Texture2D MaderaTexture { get; set; }
 
+        private const int ShadowmapSize = 2048;
         private const int EnvironmentmapSize = 2048;
         private RenderTargetCube EnvironmentMapRenderTarget { get; set; }
+        private RenderTarget2D ShadowMapRenderTarget;
         private StaticCamera CubeMapCamera { get; set; }
-        private Effect DebugTextureEffect { get; set; }
         private FullScreenQuad FullScreenQuad { get; set; }
 
         //private Vector3 DesiredLookAt;
         private List<Matrix> MatrixWorld { get; set; }
-
         private List<Matrix> MatrixWorldObs { get; set; }
+        private List<ObstaculoMovil> ListObstaculos { get; set; }
 
         private SoundEffect Sound { get; set; }
-
         private SoundEffectInstance SoundEffectInstance { get; set; }
 
         private String SoundName { get; set; }
@@ -172,21 +174,18 @@ namespace SomosLaBola
         private List<Checkpoint> checkpoints = new List<Checkpoint>();
         private List<Trigger> initialPowerUps;
 
-        /// <summary>
-        ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
-        ///     Escribir aqui el codigo de inicializacion: el procesamiento que podemos pre calcular para nuestro juego.
-        /// </summary>
-        /// 
-
         protected override void Initialize()
         {
-            // La logica de inicializacion que no depende del contenido se recomienda poner en este metodo.
+            lightPosition = new Vector3(4000f, 200f, 4000f);
+
             Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.Forward, PlayerInitialPosition);
+
+            TargetLightCamera = new TargetCamera(1f, lightPosition, Vector3.Zero);
+            TargetLightCamera.BuildProjection(1f, 0.1f, 20000, MathHelper.PiOver2);
 
             var rasterizerState = new RasterizerState {CullMode = CullMode.None};
             GraphicsDevice.RasterizerState = rasterizerState;
 
-            // Seria hasta aca.
             InitializeContent();
 
             base.Initialize();
@@ -217,19 +216,17 @@ namespace SomosLaBola
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             MatrixWorld = new List<Matrix>();
             MatrixWorldObs = new List<Matrix>();
-           // ObstaculoCubo = ObstaculoMovil.CrearObstaculoRecorridoCircular(Sphere, Matrix.CreateScale(0.1f, 0.1f, 0.1f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(0, 13, -40)));
+            ListObstaculos = new List<ObstaculoMovil>();
+
             LoadPhysics();
             generateMatrixWorld();
             Floor = new Floor(this);
 
             Sphere = Content.Load<Model>(ContentFolderModels + "geometries/sphere");
             
-
             GomaTexture = Content.Load<Texture2D>(ContentFolderTextures + "rubber");
             MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "metal-bola");
             MaderaTexture = Content.Load<Texture2D>(ContentFolderTextures + "wood/caja-madera-4");
-
-            //EnableDefaultLighting(Sphere);
 
             checkpoints.Add(new Checkpoint(new Vector3(0, 65, -1000)));
             checkpoints.Add(new Checkpoint(new Vector3(0, 65, -2700)));
@@ -248,6 +245,7 @@ namespace SomosLaBola
 
             EfectoBasico = Content.Load<Effect>(ContentFolderEffects + "BlinnPhong");
             EfectoEM = Content.Load<Effect>(ContentFolderEffects + "EnvironmentMap");
+            EfectoShadowMap = Content.Load<Effect>(ContentFolderEffects + "ShadowMap");
 
             var skyBox = Content.Load<Model>("3D/skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
@@ -263,22 +261,17 @@ namespace SomosLaBola
             SoundName = "jump_05";
             Sound = Content.Load<SoundEffect>(ContentFolderSounds + SoundName);
             MediaPlayer.Play(Song);
-            // Asigno el efecto que cargue a cada parte del mesh.
-            // Un modelo puede tener mas de 1 mesh internamente.
-            //foreach (var mesh in Cube.Meshes)
-            // Un mesh puede tener mas de 1 mesh part (cada 1 puede tener su propio efecto).
-            //foreach (var meshPart in mesh.MeshParts)
-            //  meshPart.Effect = Efecto;
-
+      
             foreach (var meshPart in Sphere.Meshes.SelectMany(mesh => mesh.MeshParts))
                 meshPart.Effect = Efecto;
 
-            DebugTextureEffect = Content.Load<Effect>(ContentFolderEffects + "DebugTexture");
-            DebugTextureEffect.CurrentTechnique = DebugTextureEffect.Techniques["DebugCubeMap"];
-
             FullScreenQuad = new FullScreenQuad(GraphicsDevice);
 
-            QuadWorld = Matrix.CreateScale(new Vector3(0.9f, 0.2f, 0f)) * Matrix.CreateTranslation(Vector3.Down * 0.7f);
+            ShadowMapRenderTarget = new RenderTarget2D(GraphicsDevice, ShadowmapSize, ShadowmapSize, false,
+                SurfaceFormat.Single, DepthFormat.Depth24, 0, RenderTargetUsage.PlatformContents);
+
+            TargetLightCamera.Position = lightPosition;
+            TargetLightCamera.BuildView();
 
             base.LoadContent();
         }
@@ -342,6 +335,7 @@ namespace SomosLaBola
         {       
            IRecorrido recorrido = new Vaiven(600f, 0.5f, 2);
            obstMovil = new ObstaculoMovil(Cube, MatrixWorldObs[0], recorrido, Simulation, SphereHandles,this);
+           ListObstaculos.Add(obstMovil);
         }
 
         private void LoadPhysics()
@@ -360,37 +354,13 @@ namespace SomosLaBola
             Simulation = Simulation.Create(BufferPool, new NarrowPhaseCallbacks(),
                new PoseIntegratorCallbacks(new NumericVector3(0, -500, 0)), new PositionFirstTimestepper());
 
-       //     Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, 0, 0),
-    //new CollidableDescription(Simulation.Shapes.Add(new Box(2000, 100, 5000)), 1)));
-            //  for (int i=0;i<MatrixWorld.Count;i++)
-            //  {
-            //      Matrix world = MatrixWorld[i];
-            //      Simulation.Statics.Add(new StaticDescription(new NumericVector3(world.Translation.X, world.Translation.Y, world.Translation.Z),
-            //     new CollidableDescription(Simulation.Shapes.Add(new Box(200, 100, 500)), 1)));
-            //  }
-            //Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0),
-              //  new CollidableDescription(Simulation.Shapes.Add(new Box(200, 100, 500)), 1)));
-
-            //Simulation.Statics.Add(new StaticDescription(new NumericVector3(9, 28, 200), new CollidableDescription(Simulation.Shapes.Add(new Sphere(2f)),1)));
-            //Simulation.Statics.Add(new StaticDescription(new ))
-           /* for (int i = 0; i < MatrixWorld.Count(); i++)
-            {
-                Simulation.Statics.Add(new StaticDescription(MatrixWorld[i].))
-                Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection);
-            }*/
-
-
-            //Simulation.Statics.Add(new StaticDescription(new NumericVector3(0, -20, 0), new CollidableDescription(Simulation.Shapes.Add(
-              //  new Box(2000, 100, 2000)), 1)));
             //Esfera
             SpheresWorld = new List<Matrix>();
-
 
             var radius = 5f;
             var sphereShape = new Sphere(radius); 
             var position = Vector3Utils.toNumeric(PlayerInitialPosition);
 
-          //var bodyDescription= BodyDescription.CreateDynamic(position, new BodyInertia { InverseMass =radius * radius * radius }, new CollidableDescription(Simulation.Shapes.Add(new Sphere(5f)), 0.1f, ContinuousDetectionSettings.Continuous(1e-3f, 1e-2f)), new BodyActivityDescription(0.01f));
             var bodyDescription = BodyDescription.CreateConvexDynamic(position, 1 / radius * radius * radius,
                Simulation.Shapes, sphereShape);
 
@@ -404,16 +374,9 @@ namespace SomosLaBola
 
         }
 
-        private void EnableDefaultLighting(Model model)
-        {
-            foreach (var mesh in model.Meshes)
-                ((BasicEffect)mesh.Effects.FirstOrDefault())?.EnableDefaultLighting();
-        }
         protected override void Draw(GameTime gameTime)
         {
-            // Aca deberiamos poner toda la logia de renderizado del juego.
-            GraphicsDevice.Clear(Color.Black);
-           
+            GraphicsDevice.Clear(Color.Black);           
 
             if (status == ST_PRESENTACION)
             {
@@ -459,7 +422,7 @@ namespace SomosLaBola
                     Efecto.Parameters["diffuseColor"]?.SetValue(Color.Black.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
-                    DrawEnvironmentMap();
+                    DrawEnvironmentMap(gameTime);
                     break;
 
                 case M_Goma :
@@ -496,10 +459,9 @@ namespace SomosLaBola
                         }
                     });
 
-
                     GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                     GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
-                    createStage(Camera);
+                    createStage(Camera, gameTime);
                     
                     break;
 
@@ -517,10 +479,12 @@ namespace SomosLaBola
                     Efecto.Parameters["diffuseColor"]?.SetValue(Color.Black.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
-                    DrawEnvironmentMap();
+                    DrawEnvironmentMap(gameTime);
                     break;
                     
             }
+
+            //DrawShadows(Sphere, playerTexture);
             
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
             Vector3 roundPosition = new Vector3(MathF.Round(PositionE.X,2), MathF.Round(PositionE.Y,2), MathF.Round(PositionE.Z,2));
@@ -555,15 +519,9 @@ namespace SomosLaBola
             SpriteBatch.DrawString(SpriteFont, stringMaterial, new Vector2(GraphicsDevice.Viewport.Width / 30, GraphicsDevice.Viewport.Height / 5), Color.White);
 
             SpriteBatch.End();
-
-            checkpoints.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
-            powerUps.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
-            obstMovil.Draw(gameTime, Camera.View, Camera.Projection, Camera.Position, lightPosition);
-
-
         }
 
-        private void DrawEnvironmentMap()
+        private void DrawEnvironmentMap(GameTime tiempoTranscurrido)
         {
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
@@ -576,13 +534,13 @@ namespace SomosLaBola
                 SetCubemapCameraForOrientation(face);
                 CubeMapCamera.BuildView();
 
-                createStage(CubeMapCamera);
+                createStage(CubeMapCamera, tiempoTranscurrido);
             }
 
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
 
-            createStage(Camera);
+            createStage(Camera, tiempoTranscurrido);
 
             Efecto.CurrentTechnique = Efecto.Techniques["EnvironmentMapSphere"];
             Efecto.Parameters["environmentMap"]?.SetValue(EnvironmentMapRenderTarget);
@@ -601,12 +559,35 @@ namespace SomosLaBola
                 }
                 mesh.Draw();
             });
-
-            //DebugTextureEffect.Parameters["World"].SetValue(QuadWorld);
-            //DebugTextureEffect.Parameters["cubeMapTexture"]?.SetValue(EnvironmentMapRenderTarget);
-            FullScreenQuad.Draw(DebugTextureEffect);
         }
 
+        private void DrawShadows(Model Model, Texture2D Texture)
+        {
+            var modelMeshesBaseTransforms = new Matrix[Model.Bones.Count];
+           
+            GraphicsDevice.SetRenderTarget(null);
+            GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
+
+            EfectoShadowMap.CurrentTechnique = EfectoShadowMap.Techniques["DrawShadowedPCF"];
+            EfectoShadowMap.Parameters["baseTexture"].SetValue(Texture);
+            EfectoShadowMap.Parameters["shadowMap"].SetValue(ShadowMapRenderTarget);
+            EfectoShadowMap.Parameters["lightPosition"].SetValue(lightPosition);
+            EfectoShadowMap.Parameters["shadowMapSize"].SetValue(Vector2.One * ShadowmapSize);
+            EfectoShadowMap.Parameters["LightViewProjection"].SetValue(TargetLightCamera.View * TargetLightCamera.Projection);
+            foreach (var modelMesh in Model.Meshes)
+            {
+                foreach (var part in modelMesh.MeshParts)
+                    part.Effect = EfectoShadowMap;
+
+                var worldMatrix = modelMeshesBaseTransforms[modelMesh.ParentBone.Index];
+
+                EfectoShadowMap.Parameters["WorldViewProjection"].SetValue(worldMatrix * Camera.View * Camera.Projection);
+                EfectoShadowMap.Parameters["World"].SetValue(worldMatrix);
+                EfectoShadowMap.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(worldMatrix)));
+
+                modelMesh.Draw();
+            }
+        }
 
         private void DrawTrigger(Trigger trigger, float tiempoTranscurrido)
          {
@@ -648,15 +629,6 @@ namespace SomosLaBola
 
                 mesh.Draw();
              }
-
-             /*
-            var a = new SpherePrimitive(GraphicsDevice,trigger.BoundingSphere.Radius * 2);
-            a.Effect = Efecto;
-            a.Effect.Alpha = 0.2f;
-
-
-            a.Draw(worldMatrix, Camera.View, Camera.Projection);
-             */
          }
 
 
@@ -777,7 +749,6 @@ namespace SomosLaBola
 
             Timer += (float) gameTime.ElapsedGameTime.TotalSeconds;
 
-            lightPosition = new Vector3(4000f, 200f, 4000f);
             Efecto.Parameters["eyePosition"]?.SetValue(Camera.Position);
             Efecto.Parameters["lightPosition"]?.SetValue(lightPosition);
 
@@ -1000,12 +971,18 @@ namespace SomosLaBola
         }
 
 
-        private void createStage(Camera Camera)
+        private void createStage(Camera Camera, GameTime gameTime)
         {
             for (int i = 0; i < MatrixWorld.Count(); i++)
             {
                 Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection, Camera.Position, lightPosition);
             }
+
+            float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
+            
+            checkpoints.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
+            powerUps.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
+            ListObstaculos.ForEach(x => x.Draw(gameTime, Camera.View, Camera.Projection, Camera.Position, lightPosition));
             
             Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
             // worldMatrix=generarCubosRectos(4);
