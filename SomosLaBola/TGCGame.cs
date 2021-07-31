@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -84,7 +84,7 @@ namespace SomosLaBola
         private Effect Efecto { get; set; }
         private Effect EfectoBasico { get; set; }
         private Effect EfectoEM { get; set; }
-        private Effect EfectoShadowMap { get; set; }
+        private Effect EfectoShadows { get; set; }
 
         private Model Sphere { get; set; }
 
@@ -103,6 +103,7 @@ namespace SomosLaBola
         private Texture2D GomaTexture { get; set; }
         private Texture2D MetalTexture { get; set; }
         private Texture2D MaderaTexture { get; set; }
+        private Texture2D playerTexture { get; set; }
 
         private const int ShadowmapSize = 2048;
         private const int EnvironmentmapSize = 2048;
@@ -228,6 +229,8 @@ namespace SomosLaBola
             MetalTexture = Content.Load<Texture2D>(ContentFolderTextures + "metal-bola");
             MaderaTexture = Content.Load<Texture2D>(ContentFolderTextures + "wood/caja-madera-4");
 
+            playerTexture = GomaTexture;
+
             checkpoints.Add(new Checkpoint(new Vector3(0, 65, -1000)));
             checkpoints.Add(new Checkpoint(new Vector3(0, 65, -2700)));
             checkpoints.Add(new Checkpoint(new Vector3(0, 20, -8500)));
@@ -245,7 +248,7 @@ namespace SomosLaBola
 
             EfectoBasico = Content.Load<Effect>(ContentFolderEffects + "BlinnPhong");
             EfectoEM = Content.Load<Effect>(ContentFolderEffects + "EnvironmentMap");
-            EfectoShadowMap = Content.Load<Effect>(ContentFolderEffects + "ShadowMap");
+            EfectoShadows = Content.Load<Effect>(ContentFolderEffects + "ShadowMap");
 
             var skyBox = Content.Load<Model>("3D/skybox/cube");
             var skyBoxTexture = Content.Load<TextureCube>(ContentFolderTextures + "skyboxes/skybox/skybox");
@@ -399,7 +402,7 @@ namespace SomosLaBola
             //Box.Draw(FloorWorld, Camera.View, Camera.Projection);
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
 
-            var playerTexture = Material switch
+            playerTexture = Material switch
                 {
                     M_Goma => GomaTexture,
                     M_Metal => MetalTexture,
@@ -440,6 +443,8 @@ namespace SomosLaBola
                     Efecto.Parameters["diffuseColor"]?.SetValue(Color.Black.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
+                    DrawShadows();
+
                     SpheresWorld.ForEach(sphereWorld => {
                         var mesh = Sphere.Meshes.FirstOrDefault();
                         if (mesh != null)
@@ -458,7 +463,7 @@ namespace SomosLaBola
                             mesh.Draw();
                         }
                     });
-
+                
                     GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                     GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
                     createStage(Camera, gameTime);
@@ -483,15 +488,12 @@ namespace SomosLaBola
                     break;
                     
             }
-
-            //DrawShadows(Sphere, playerTexture);
             
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
             Vector3 roundPosition = new Vector3(MathF.Round(PositionE.X,2), MathF.Round(PositionE.Y,2), MathF.Round(PositionE.Z,2));
-            Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
-            SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.Opaque,
+            SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend,
                 SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             SpriteBatch.DrawString(SpriteFont, roundPosition.ToString(), new Vector2(GraphicsDevice.Viewport.Width /2, 0), Color.White);
             SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(GraphicsDevice.Viewport.Width / 30, 0), Color.White);
@@ -537,6 +539,9 @@ namespace SomosLaBola
                 createStage(CubeMapCamera, tiempoTranscurrido);
             }
 
+
+            DrawShadows();
+
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
 
@@ -561,61 +566,73 @@ namespace SomosLaBola
             });
         }
 
-        private void DrawShadows(Model Model, Texture2D Texture)
+        private void DrawShadows()
         {
-            var modelMeshesBaseTransforms = new Matrix[Model.Bones.Count];
-           
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.BlendState = BlendState.AlphaBlend;
+
+            // Set the render target as our shadow map, we are drawing the depth into this texture
+            GraphicsDevice.SetRenderTarget(ShadowMapRenderTarget);
+            GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
+
+            EfectoShadows.CurrentTechnique = EfectoShadows.Techniques["DepthPass"];
+                
+            SpheresWorld.ForEach(sphereWorld => {
+                var mesh = Sphere.Meshes.FirstOrDefault();
+                if (mesh != null)
+                foreach (var part in mesh.MeshParts)
+                    part.Effect = EfectoShadows;
+
+                var worldM = mesh.ParentBone.Transform * sphereWorld;
+                EfectoShadows.Parameters["WorldViewProjection"]
+                    .SetValue(worldM * TargetLightCamera.View * TargetLightCamera.Projection);
+
+                // Once we set these matrices we draw
+                mesh.Draw();
+            });
+
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
 
-            EfectoShadowMap.CurrentTechnique = EfectoShadowMap.Techniques["DrawShadowedPCF"];
-            EfectoShadowMap.Parameters["baseTexture"].SetValue(Texture);
-            EfectoShadowMap.Parameters["shadowMap"].SetValue(ShadowMapRenderTarget);
-            EfectoShadowMap.Parameters["lightPosition"].SetValue(lightPosition);
-            EfectoShadowMap.Parameters["shadowMapSize"].SetValue(Vector2.One * ShadowmapSize);
-            EfectoShadowMap.Parameters["LightViewProjection"].SetValue(TargetLightCamera.View * TargetLightCamera.Projection);
-            foreach (var modelMesh in Model.Meshes)
-            {
-                foreach (var part in modelMesh.MeshParts)
-                    part.Effect = EfectoShadowMap;
+            EfectoShadows.CurrentTechnique = EfectoShadows.Techniques["DrawShadowedPCF"];
+            EfectoShadows.Parameters["baseTexture"].SetValue(playerTexture);
+            EfectoShadows.Parameters["shadowMap"].SetValue(ShadowMapRenderTarget);
+            EfectoShadows.Parameters["lightPosition"].SetValue(lightPosition);
+            EfectoShadows.Parameters["shadowMapSize"].SetValue(Vector2.One * ShadowmapSize);
+            EfectoShadows.Parameters["LightViewProjection"].SetValue(TargetLightCamera.View * TargetLightCamera.Projection);
 
-                var worldMatrix = modelMeshesBaseTransforms[modelMesh.ParentBone.Index];
+            SpheresWorld.ForEach(sphereWorld => {
+                var mesh = Sphere.Meshes.FirstOrDefault();
+                if (mesh != null)
+                foreach (var part in mesh.MeshParts)
+                    part.Effect = EfectoShadows;
 
-                EfectoShadowMap.Parameters["WorldViewProjection"].SetValue(worldMatrix * Camera.View * Camera.Projection);
-                EfectoShadowMap.Parameters["World"].SetValue(worldMatrix);
-                EfectoShadowMap.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(worldMatrix)));
-
-                modelMesh.Draw();
-            }
+                var worldM = mesh.ParentBone.Transform * sphereWorld;
+                EfectoShadows.Parameters["WorldViewProjection"]
+                    .SetValue(worldM * TargetLightCamera.View * TargetLightCamera.Projection);
+                EfectoShadows.Parameters["World"].SetValue(worldM);
+                EfectoShadows.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(worldM)));
+                // Once we set these matrices we draw
+                mesh.Draw();
+            });
         }
 
         private void DrawTrigger(Trigger trigger, float tiempoTranscurrido)
          {
              GraphicsDevice.BlendState = BlendState.AlphaBlend;
-
              var worldMatrix = Matrix.CreateRotationY(tiempoTranscurrido % (MathF.PI * 2)) *
                                Matrix.CreateTranslation(trigger.BoundingSphere.Center);
-
              var mesh = Sphere.Meshes.FirstOrDefault();
-
-
-
              if (mesh != null)
              {
                  var meshScale = Vector3.Zero;
                  mesh.ParentBone.Transform.Decompose(out meshScale, out _, out _);
-
                  var scale = 1 / (meshScale.X / trigger.BoundingSphere.Radius);
-
                  EfectoBasico.CurrentTechnique = EfectoBasico.Techniques["SetColorDrawing"];
-
-
                  var color = trigger.Color().ToVector4();
                  color.W = 0.2f;
-
                  EfectoBasico.Parameters["Color"]?.SetValue(color);
                  EfectoBasico.Parameters["ambientColor"]?.SetValue(Vector3.One);
-
                 foreach (var part in mesh.MeshParts)
                 {
                     part.Effect = EfectoBasico;
@@ -628,9 +645,8 @@ namespace SomosLaBola
                 }
 
                 mesh.Draw();
-             }
-         }
-
+            }
+        }
 
         private void SetCubemapCameraForOrientation(CubeMapFace face)
         {
@@ -979,14 +995,12 @@ namespace SomosLaBola
             }
 
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
-            
+
             checkpoints.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
             powerUps.ForEach(x => DrawTrigger(x, tiempoTranscurrido));
             ListObstaculos.ForEach(x => x.Draw(gameTime, Camera.View, Camera.Projection, Camera.Position, lightPosition));
             
             Skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
-            // worldMatrix=generarCubosRectos(4);
-            // Floor.draw();
         }
 
         /// <summary>

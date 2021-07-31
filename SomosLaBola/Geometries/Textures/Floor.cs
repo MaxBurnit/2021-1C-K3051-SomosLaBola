@@ -29,7 +29,7 @@ namespace SomosLaBola.Geometries.Textures
                     part.Effect = Effect;
                 }
         }
-        private Model Cube { get; set; }
+        public Model Cube { get; set; }
 
         public override void Update(GameTime gameTime)
         {
