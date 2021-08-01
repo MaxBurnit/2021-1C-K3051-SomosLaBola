@@ -177,15 +177,22 @@ namespace SomosLaBola
 
         protected override void Initialize()
         {
-            lightPosition = new Vector3(4000f, 200f, 4000f);
+            lightPosition = new Vector3(400f, 300f, 400f);
 
             Camera = new TargetCamera(GraphicsDevice.Viewport.AspectRatio, Vector3.Forward, PlayerInitialPosition);
 
             TargetLightCamera = new TargetCamera(1f, lightPosition, Vector3.Zero);
-            TargetLightCamera.BuildProjection(1f, 0.1f, 20000, MathHelper.PiOver2);
+            TargetLightCamera.BuildProjection(1f, 0.1f, 200000, MathHelper.PiOver2);
 
             var rasterizerState = new RasterizerState {CullMode = CullMode.None};
             GraphicsDevice.RasterizerState = rasterizerState;
+
+            BufferPool = new BufferPool();
+
+
+            var targetThreadCount = Math.Max(1,
+               Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
+            ThreadDispatcher = new SimpleThreadDispatcher(targetThreadCount);
 
             InitializeContent();
 
@@ -344,11 +351,12 @@ namespace SomosLaBola
         private void LoadPhysics()
         {
             //Physics
-            BufferPool = new BufferPool();
-
             Radii = new List<float>();
 
             SphereHandles = new List<BodyHandle>();
+
+            BufferPool = new BufferPool();
+
 
             var targetThreadCount = Math.Max(1,
                Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : Environment.ProcessorCount - 1);
@@ -364,7 +372,7 @@ namespace SomosLaBola
             var sphereShape = new Sphere(radius); 
             var position = Vector3Utils.toNumeric(PlayerInitialPosition);
 
-            var bodyDescription = BodyDescription.CreateConvexDynamic(position, 1 / radius * radius * radius,
+            var bodyDescription = BodyDescription.CreateConvexDynamic(position, radius,
                Simulation.Shapes, sphereShape);
 
             bodyDescription.Collidable.Continuity.Mode = ContinuousDetectionMode.Continuous;
@@ -443,7 +451,7 @@ namespace SomosLaBola
                     Efecto.Parameters["diffuseColor"]?.SetValue(Color.Black.ToVector3());
                     Efecto.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
-                    DrawShadows();
+                    //DrawShadows();
 
                     SpheresWorld.ForEach(sphereWorld => {
                         var mesh = Sphere.Meshes.FirstOrDefault();
@@ -467,7 +475,8 @@ namespace SomosLaBola
                     GraphicsDevice.DepthStencilState = DepthStencilState.Default;
                     GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
                     createStage(Camera, gameTime);
-                    
+                    GraphicsDevice.BlendState = BlendState.AlphaBlend;
+
                     break;
 
                 default :  
@@ -527,6 +536,8 @@ namespace SomosLaBola
         {
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
+            
+            GraphicsDevice.BlendState = BlendState.AlphaBlend;
 
             for (var face = CubeMapFace.PositiveX; face <= CubeMapFace.NegativeZ; face++)
             {
@@ -539,11 +550,12 @@ namespace SomosLaBola
                 createStage(CubeMapCamera, tiempoTranscurrido);
             }
 
+            //DrawShadows();
 
-            DrawShadows();
 
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
+            GraphicsDevice.BlendState = BlendState.AlphaBlend;
 
             createStage(Camera, tiempoTranscurrido);
 
@@ -591,6 +603,20 @@ namespace SomosLaBola
                 mesh.Draw();
             });
 
+            foreach(var mesh in Floor.Cube.Meshes){
+                foreach (var part in mesh.MeshParts)
+                    part.Effect = EfectoShadows;
+
+                foreach(var WorldFloor in MatrixWorld){
+                     var worldF = mesh.ParentBone.Transform * WorldFloor;
+                    EfectoShadows.Parameters["WorldViewProjection"]
+                    .SetValue(worldF * TargetLightCamera.View * TargetLightCamera.Projection);
+
+                // Once we set these matrices we draw
+                    mesh.Draw();
+                }
+            }
+
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.Black, 1f, 0);
 
@@ -609,12 +635,31 @@ namespace SomosLaBola
 
                 var worldM = mesh.ParentBone.Transform * sphereWorld;
                 EfectoShadows.Parameters["WorldViewProjection"]
-                    .SetValue(worldM * TargetLightCamera.View * TargetLightCamera.Projection);
+                    .SetValue(worldM * Camera.View * Camera.Projection);
                 EfectoShadows.Parameters["World"].SetValue(worldM);
                 EfectoShadows.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(worldM)));
                 // Once we set these matrices we draw
                 mesh.Draw();
             });
+
+            EfectoShadows.Parameters["baseTexture"].SetValue(Floor.Texture);
+
+
+            foreach(var mesh in Floor.Cube.Meshes){
+                foreach (var part in mesh.MeshParts)
+                    part.Effect = EfectoShadows;
+
+                foreach(var WorldFloor in MatrixWorld){
+                    var worldF = mesh.ParentBone.Transform * WorldFloor;
+                    EfectoShadows.Parameters["WorldViewProjection"]
+                    .SetValue(worldF * Camera.View * Camera.Projection);
+                    EfectoShadows.Parameters["World"].SetValue(worldF);
+                    EfectoShadows.Parameters["InverseTransposeWorld"].SetValue(Matrix.Transpose(Matrix.Invert(worldF)));
+                // Once we set these matrices we draw
+                    mesh.Draw();
+                }
+            }
+            GraphicsDevice.BlendState = BlendState.AlphaBlend;
         }
 
         private void DrawTrigger(Trigger trigger, float tiempoTranscurrido)
@@ -812,11 +857,13 @@ namespace SomosLaBola
         {
             SoundEffectInstance = Sound.CreateInstance();
             SoundEffectInstance.Volume = 0.4F;
+
             //Physics
             Simulation.Timestep(1/ 60f, ThreadDispatcher);
             SpheresWorld.Clear();
            
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
+
             var playerAceleration = 10;
             //var plataforma = Simulation.Statics.GetStaticReference(StaticHandle[0]);
 
