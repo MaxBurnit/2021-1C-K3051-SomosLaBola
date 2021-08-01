@@ -42,7 +42,6 @@ samplerCUBE environmentMapSampler = sampler_state
     AddressV = Clamp;
 };
 
-
 struct VertexShaderInput
 {
 	float4 Position : POSITION0;
@@ -57,7 +56,6 @@ struct VertexShaderOutput
 	float4 WorldPosition : TEXCOORD1;
 	float4 Normal : TEXCOORD2;
 };
-
 
 VertexShaderOutput MainVS(in VertexShaderInput input)
 {
@@ -101,8 +99,6 @@ float4 EnvironmentMapPS(VertexShaderOutput input) : COLOR
     return float4(lerp(finalLightColor, reflectionColor, reflectionLevel), 1);
 }
 
-
-
 VertexShaderOutput SphereVS(in VertexShaderInput input)
 {
     VertexShaderOutput output = (VertexShaderOutput) 0;
@@ -115,7 +111,6 @@ VertexShaderOutput SphereVS(in VertexShaderInput input)
     return output;
 }
 
-
 technique EnvironmentMap
 {
     pass Pass0
@@ -124,8 +119,6 @@ technique EnvironmentMap
         PixelShader = compile PS_SHADERMODEL EnvironmentMapPS();
     }
 };
-
-
 
 technique EnvironmentMapSphere
 {
