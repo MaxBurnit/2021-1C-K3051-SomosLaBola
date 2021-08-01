@@ -23,9 +23,9 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Microsoft.Xna.Framework.Media;
 using SomosLaBola.Obstaculos.Recorridos;
 using SomosLaBola.PlayerInfo;
-using SomosLaBola.Powerups;
 using Vector4 = Microsoft.Xna.Framework.Vector4;
 using Microsoft.Xna.Framework.Audio;
+using SomosLaBola.Triggers;
 
 namespace SomosLaBola
 {
@@ -89,6 +89,7 @@ namespace SomosLaBola
         private Model Sphere { get; set; }
 
         private Model Cube { get; set; }
+        private Model Alas { get; set; }
         private Vector3 SpherePosition { get; set; }
         public Matrix SphereWorld { get; private set; }
         private CubePrimitive Box { get; set; }
@@ -244,7 +245,11 @@ namespace SomosLaBola
             checkpoints.Add(new Checkpoint(new Vector3(2500, -650, -9300)));
             checkpoints.Add(new Checkpoint(new Vector3(8850, -650, -9150)));
 
-            powerUps.Add(new Planear(new Vector3(0, 20, -100)));
+
+
+            Alas = Content.Load<Model>(ContentFolder3D + "powers/wings");
+
+            powerUps.Add(new Planear(new Vector3(0, 20, -100), Alas));
             initialPowerUps = new List<Trigger>(powerUps);
 
 
@@ -663,34 +668,71 @@ namespace SomosLaBola
         }
 
         private void DrawTrigger(Trigger trigger, float tiempoTranscurrido)
-         {
+        {
              GraphicsDevice.BlendState = BlendState.AlphaBlend;
-             var worldMatrix = Matrix.CreateRotationY(tiempoTranscurrido % (MathF.PI * 2)) *
+
+            var worldMatrix = Matrix.CreateRotationY(tiempoTranscurrido % (MathF.PI * 2)) *
                                Matrix.CreateTranslation(trigger.BoundingSphere.Center);
-             var mesh = Sphere.Meshes.FirstOrDefault();
-             if (mesh != null)
+
+             var sphereMesh = Sphere.Meshes.FirstOrDefault();
+
+             if (trigger.Content != null)
              {
-                 var meshScale = Vector3.Zero;
-                 mesh.ParentBone.Transform.Decompose(out meshScale, out _, out _);
-                 var scale = 1 / (meshScale.X / trigger.BoundingSphere.Radius);
+                 BoundingSphere contentBoundingSphere = ModelUtils.CreateBoundingSphere(trigger.Content);
+                 var scale = trigger.BoundingSphere.Radius / contentBoundingSphere.Radius * 0.9f;
+
+                 Matrix[] transforms = new Matrix[trigger.Content.Bones.Count];
+                 trigger.Content.CopyAbsoluteBoneTransformsTo(transforms);
+
+                foreach (var mesh in trigger.Content.Meshes)
+                {
+                     foreach (var part in mesh.MeshParts)
+                     {
+                         part.Effect = EfectoBasico;
+                     }
+
+                     var color = Color.Black.ToVector4();
+
+                    EfectoBasico.Parameters["Color"]?.SetValue(color);
+
+                    var worldM = transforms[mesh.ParentBone.Index] * Matrix.CreateScale(scale) * worldMatrix;
+                     EfectoBasico.Parameters["World"]?.SetValue(worldM);
+                     var worldViewProjection = worldM * Camera.View * Camera.Projection;
+                     EfectoBasico.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
+                     EfectoBasico.Parameters["InverseTransposeWorld"]
+                         ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+
+                     mesh.Draw(); 
+                }
+             }
+
+
+             if (sphereMesh != null)
+             {
+                 sphereMesh.ParentBone.Transform.Decompose(out var meshScale, out _, out _);
+
+                 var scale = trigger.BoundingSphere.Radius / meshScale.X;
+
                  EfectoBasico.CurrentTechnique = EfectoBasico.Techniques["SetColorDrawing"];
                  var color = trigger.Color().ToVector4();
                  color.W = 0.2f;
                  EfectoBasico.Parameters["Color"]?.SetValue(color);
                  EfectoBasico.Parameters["ambientColor"]?.SetValue(Vector3.One);
-                foreach (var part in mesh.MeshParts)
-                {
-                    part.Effect = EfectoBasico;
-                    var worldM = mesh.ParentBone.Transform * Matrix.CreateScale(scale)  * worldMatrix;
-                    EfectoBasico.Parameters["World"]?.SetValue(worldM);
-                    var worldViewProjection = worldM * Camera.View * Camera.Projection;
-                    EfectoBasico.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
-                    EfectoBasico.Parameters["InverseTransposeWorld"]
-                        ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
-                }
 
-                mesh.Draw();
-            }
+                 foreach (var part in sphereMesh.MeshParts)
+                 {
+                     part.Effect = EfectoBasico;
+                 }
+
+                 var worldM = sphereMesh.ParentBone.Transform * Matrix.CreateScale(scale) * worldMatrix;
+                 EfectoBasico.Parameters["World"]?.SetValue(worldM);
+                 var worldViewProjection = worldM * Camera.View * Camera.Projection;
+                 EfectoBasico.Parameters["WorldViewProjection"]?.SetValue(worldViewProjection);
+                 EfectoBasico.Parameters["InverseTransposeWorld"]
+                     ?.SetValue(Matrix.Invert(Matrix.Transpose(worldM)));
+
+                 sphereMesh.Draw();
+             }
         }
 
         private void SetCubemapCameraForOrientation(CubeMapFace face)
@@ -790,17 +832,17 @@ namespace SomosLaBola
           
             SphereWorld = Matrix.CreateTranslation(SpherePosition) * Matrix.CreateScale(0.3f);
             Vector3 SpherePositionM = new Vector3
-                                                            (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
-                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
-                                                            Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z);
+            (Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.X,
+                Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Y,
+                Simulation.Bodies.GetBodyReference(SphereHandles[0]).Pose.Position.Z);
 
             // Camera.Position = new Vector3(SpherePositionM.X, SpherePositionM.Y, SpherePositionM.Z - 500);
 
             var currentKeyPressedG = Keyboard.GetState().IsKeyDown(Keys.G);
             
             if(!currentKeyPressedG && GPresionada){
-                    if(godMode) godMode = false;
-                    else godMode = true;
+                if(godMode) godMode = false;
+                else godMode = true;
             }
             
             GPresionada = currentKeyPressedG;
@@ -873,8 +915,8 @@ namespace SomosLaBola
             var VectorMovimientoZ = new NumericVector3(0, 0, 5);
 
             if(godMode){
-               sphereBody.Velocity.Linear = new NumericVector3(0,0,0);
-               sphereBody.Velocity.Angular = new NumericVector3(0,0,0);
+                sphereBody.Velocity.Linear = new NumericVector3(0,0,0);
+                sphereBody.Velocity.Angular = new NumericVector3(0,0,0);
             }
 
             var cameraFront = Camera.FrontDirection;
@@ -903,7 +945,7 @@ namespace SomosLaBola
                 _ => 1
             };
 
-           var velocidadGodMode = 30;
+            var velocidadGodMode = 30;
 
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
@@ -937,12 +979,12 @@ namespace SomosLaBola
                 if(!godMode){
                     sphereBody.Awake = true;
                     sphereBody.Velocity.Linear = sphereBody.Velocity.Linear + right * playerAceleration * materialSpeedBoost;
-                 } 
+                } 
                 else sphereBody.Pose.Position += right * velocidadGodMode;
             }
 
             if(MathHelper.Distance(sphereBody.Velocity.Linear.Y, velocidadLinearYAnt) < 0.5 
-                && MathHelper.Distance(sphereBody.Velocity.Angular.Y, velocidadAngularYAnt) < 0.5) puedoSaltar = true;
+               && MathHelper.Distance(sphereBody.Velocity.Angular.Y, velocidadAngularYAnt) < 0.5) puedoSaltar = true;
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
