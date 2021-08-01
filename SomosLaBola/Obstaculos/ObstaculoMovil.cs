@@ -29,7 +29,7 @@ namespace SomosLaBola.Obstaculos
             this.Simulation = simulation;
             var boxBodyHandle = Simulation.Bodies.Add(BodyDescription.CreateKinematic(new RigidPose(new System.Numerics.Vector3(
                 transformaciones.Translation.X, transformaciones.Translation.Y, transformaciones.Translation.Z)), 
-                new CollidableDescription(Simulation.Shapes.Add(new Box(100f, 100f, 100f)), 0.1f), new BodyActivityDescription(-1f)));
+                new CollidableDescription(Simulation.Shapes.Add(new Box(100f, 100f, 100f)), 0.1f, ContinuousDetectionSettings.Continuous(1e-4f, 1e-4f)), new BodyActivityDescription(-0.1f)));
             BoxBodyHandles.Add(boxBodyHandle);
 
             Effect = Game.Content.Load<Effect>(ContentFolderEffects + "PlatformShader");

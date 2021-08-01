@@ -328,7 +328,7 @@ namespace SomosLaBola
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 2590f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f * 2, (pos.Y + 2) * 2, 600f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 5890f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(3000f * 2, (pos.Y + 2) * 2, 300f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 9490f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(600f * 2, (pos.Y + 2) * 2, 1000f * 2)), 0.1f)));
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + lastPosition + 500f + 300f+ 300f, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(500f * 2, (pos.Y + 10f) * 2, 500 * 2)), 0.1f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + lastPosition + 500f + 300f+ 300f, pos.Y - 650f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(500f * 2, (pos.Y + 10f) * 2, 500 * 2)), 0.1f)));
 
         }
 
@@ -341,8 +341,8 @@ namespace SomosLaBola
             {
                 MatrixWorld.Add(Matrix.CreateScale(300f, 10f, 300f) * Matrix.CreateRotationZ(-MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X + posX + displacement, pos.Y - 700f, pos.Z - 9300)));
                 Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + posX + displacement, pos.Y - 700f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f * 2, (pos.Y + 10f) * 2, 300f * 2)), 0.1f)));
-                displacement += 1000f;
-                posAcum += 1000f;
+                displacement += 700f;
+                posAcum += 700f;
             }
             return posAcum;
         }
