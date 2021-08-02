@@ -294,12 +294,15 @@ namespace SomosLaBola
         private void generateMatrixWorld()
         {
             float posZ = 0f;
-            System.Numerics.Quaternion rot=System.Numerics.Quaternion.CreateFromRotationMatrix(Matrix4x4.CreateRotationZ(-MathHelper.Pi / 10));
+            System.Numerics.Quaternion rotZ=System.Numerics.Quaternion.CreateFromRotationMatrix(Matrix4x4.CreateRotationZ(-MathHelper.Pi / 10));
+            System.Numerics.Quaternion rotX=System.Numerics.Quaternion.CreateFromRotationMatrix(Matrix4x4.CreateRotationX(MathHelper.Pi / 10));
             Vector3 pos = Vector3.Forward * posZ;
 
             MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 400f)  * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 400f)));
             MatrixWorld.Add(Matrix.CreateScale(60f, 30f, 1000f)* Matrix.CreateRotationX(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y + 28, pos.Z - 1800f)));
-            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 3000f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 5800)));
+            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 1500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 2900)));
+            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 2000f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 6600)));
+            MatrixWorld.Add(Matrix.CreateScale(60f, 2f, 150f) * Matrix.CreateRotationX(MathHelper.Pi / 10) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 4400)));
             MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y, pos.Z - 9300)));
             MatrixWorld.Add(Matrix.CreateScale(300f, 2f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X, pos.Y + 200f, pos.Z - 9300)));
             MatrixWorld.Add(Matrix.CreateScale(10f, 100f, 500f) * Matrix.CreateRotationY(MathHelper.Pi) * Matrix.CreateTranslation(new Vector3(pos.X - 310f, pos.Y + 100f, pos.Z - 9300)));
@@ -317,11 +320,13 @@ namespace SomosLaBola
             //Es la misma traslación del bloque                                                    Es el doble del escalado del bloque.
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 400f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 800f)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y + 28, pos.Z - 1800f)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 30) * 2, 1000f * 2)), 0.1f)));
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 5800)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 3000f * 2)), 0.1f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 2900)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 1500f * 2)), 0.1f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 6600)), new CollidableDescription(Simulation.Shapes.Add(new Box(120f, (pos.Y + 2) * 2, 2000f * 2)), 0.1f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 4400)), rotX, new CollidableDescription(Simulation.Shapes.Add(new Box(120f * 2, (pos.Y + 2) * 2, 150f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f * 2, (pos.Y + 2) * 2, 500f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y+200, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f * 2, (pos.Y + 2) * 2, 500f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X - 310f, pos.Y + 100f, pos.Z - 9300)), new CollidableDescription(Simulation.Shapes.Add(new Box(10f * 2, (pos.Y + 100f) * 2, 500f * 2)), 0.1f)));
-            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 1250f, pos.Y - 310f, pos.Z - 9300)), rot, new CollidableDescription(Simulation.Shapes.Add(new Box(1000f * 2, (pos.Y + 2) * 2, 150f * 2)), 0.1f)));
+            Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 1250f, pos.Y - 310f, pos.Z - 9300)), rotZ, new CollidableDescription(Simulation.Shapes.Add(new Box(1000f * 2, (pos.Y + 2) * 2, 150f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 290f, pos.Y + 100f, pos.Z - 9600)), new CollidableDescription(Simulation.Shapes.Add(new Box(10f * 2, (pos.Y + 100) * 2, 200f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X + 290f, pos.Y + 100f, pos.Z - 9000)), new CollidableDescription(Simulation.Shapes.Add(new Box(10f * 2, (pos.Y + 100) * 2, 200f * 2)), 0.1f)));
             Simulation.Statics.Add(new StaticDescription(Vector3Utils.toNumeric(new Vector3(pos.X, pos.Y + 100f, pos.Z - 9810)), new CollidableDescription(Simulation.Shapes.Add(new Box(300f * 2, (pos.Y + 100f) * 2, 10f * 2)), 0.1f)));
