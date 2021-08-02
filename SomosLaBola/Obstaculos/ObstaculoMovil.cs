@@ -20,8 +20,10 @@ namespace SomosLaBola.Obstaculos
         public List<BodyHandle> BoxBodyHandles;
    
         public Effect Effect;
-        public ObstaculoMovil(Model model, Matrix transformaciones, IRecorrido recorrido,Simulation simulation, List<BodyHandle> SphereHandles,TGCGame game) : base(game)
+        public ObstaculoMovil(Model model, Matrix transformaciones, IRecorrido recorrido,Simulation simulation,TGCGame game) : base(game)
         {
+            transformaciones.Decompose(out var vector3, out var rot, out var translation);
+
             BoxBodyHandles= new List<BodyHandle>();
             this.model = model;
             this.recorrido = recorrido;
@@ -29,7 +31,7 @@ namespace SomosLaBola.Obstaculos
             this.Simulation = simulation;
             var boxBodyHandle = Simulation.Bodies.Add(BodyDescription.CreateKinematic(new RigidPose(new System.Numerics.Vector3(
                 transformaciones.Translation.X, transformaciones.Translation.Y, transformaciones.Translation.Z)), 
-                new CollidableDescription(Simulation.Shapes.Add(new Box(100f, 100f, 100f)), 0.1f, ContinuousDetectionSettings.Continuous(1e-4f, 1e-4f)), new BodyActivityDescription(-0.1f)));
+                new CollidableDescription(Simulation.Shapes.Add(new Box(vector3.X*2, vector3.Y*2, vector3.Z*2)), 0.1f, ContinuousDetectionSettings.Continuous(1e-4f, 1e-4f)), new BodyActivityDescription(-0.1f)));
             BoxBodyHandles.Add(boxBodyHandle);
 
             Effect = Game.Content.Load<Effect>(ContentFolderEffects + "PlatformShader");
@@ -89,20 +91,20 @@ namespace SomosLaBola.Obstaculos
           //  Cube.Draw(matrixMundoTrasladada, vista, proyeccion);
         }
 
-        public static ObstaculoMovil CrearObstaculoRecorridoCircular(Model model, Matrix transformaciones, Simulation simulation, List<BodyHandle> SphereHandles, TGCGame game)
+        public static ObstaculoMovil CrearObstaculoRecorridoCircular(Model model, Matrix transformaciones, Simulation simulation, TGCGame game)
         {
-            var recorrido = new RecorridoCircular(13, 7);
-            return new ObstaculoMovil(model, transformaciones, recorrido, simulation, SphereHandles, game);
+            var recorrido = new RecorridoCircular(35, 1.7f);
+            return new ObstaculoMovil(model, transformaciones, recorrido, simulation, game);
         }
-        public static ObstaculoMovil CrearObstaculoRecorridoOnda(Model model, Matrix transformaciones, Simulation simulation, List<BodyHandle> SphereHandles, TGCGame game)
+        public static ObstaculoMovil CrearObstaculoRecorridoOnda(Model model, Matrix transformaciones, Simulation simulation, TGCGame game)
         {
             var recorrido = new RecorridoOnda(5, 3, 2);
-            return new ObstaculoMovil(model, transformaciones, recorrido, simulation, SphereHandles, game);
+            return new ObstaculoMovil(model, transformaciones, recorrido, simulation, game);
         }
-        public static ObstaculoMovil CrearObstaculoRecorridoVaiven(Model model, Matrix transformaciones, Simulation simulation, List<BodyHandle> SphereHandles, TGCGame game)
+        public static ObstaculoMovil CrearObstaculoRecorridoVaiven(Model model, Matrix transformaciones, Simulation simulation, TGCGame game)
         {
             var recorrido = new Vaiven(4, 0.5f, 2);
-            return new ObstaculoMovil(model, transformaciones, recorrido, simulation, SphereHandles, game);
+            return new ObstaculoMovil(model, transformaciones, recorrido, simulation, game);
         }
 
     }
