@@ -17,11 +17,13 @@ namespace SomosLaBola.Geometries.Textures
         public const string ContentFolderEffects = "Effects/";
         public Effect Effect;
         public Texture2D Texture;
+        public Texture2D PisoTexture;
 
         public Floor(TGCGame game) : base(game)
         {
             Effect = Game.Content.Load<Effect>(ContentFolderEffects + "PlatformShader");
             Texture = Game.Content.Load<Texture2D>(ContentFolderTextures + "Platform");
+            PisoTexture = Game.Content.Load<Texture2D>(ContentFolderTextures + "piso2");
             Cube = Game.Content.Load<Model>(ContentFolder3D + "geometries/cube");
             foreach (ModelMesh mesh in Cube.Meshes)
                 foreach (var part in mesh.MeshParts)
@@ -35,7 +37,7 @@ namespace SomosLaBola.Geometries.Textures
         {
             base.Update(gameTime);
         }
-        public void Draw(Matrix world, Matrix view, Matrix projection, Vector3 cameraPosition, Vector3 lightPosition)
+        public void Draw(Matrix world, Matrix view, Matrix projection, Vector3 cameraPosition, Vector3 lightPosition, int estadoFloor)
         {
             
             foreach (ModelMesh mesh in Cube.Meshes)
@@ -52,9 +54,33 @@ namespace SomosLaBola.Geometries.Textures
                 Effect.Parameters["KSpecular"]?.SetValue(0.4f);
 
                 Effect.Parameters["shininess"]?.SetValue(1f);
+                
+                switch(estadoFloor){
+                    case 0 : Effect.Parameters["ambientColor"]?.SetValue(Color.DarkBlue.ToVector3());
+                            Effect.Parameters["diffuseColor"]?.SetValue(Color.DarkBlue.ToVector3());
+                            break;
+                    case 1 : Effect.Parameters["ambientColor"]?.SetValue(Color.Yellow.ToVector3());
+                            Effect.Parameters["diffuseColor"]?.SetValue(Color.Yellow.ToVector3());
+                            break;
+                    case 2 : Effect.Parameters["ambientColor"]?.SetValue(Color.Purple.ToVector3());
+                            Effect.Parameters["diffuseColor"]?.SetValue(Color.Purple.ToVector3());
+                            break;
+                    case 3 : Effect.Parameters["ambientColor"]?.SetValue(Color.Green.ToVector3());
+                            Effect.Parameters["diffuseColor"]?.SetValue(Color.Green.ToVector3());
+                            break;
+                    case 4 : Effect.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
+                            Effect.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
+                            break;
+                    case -1 : Effect.Parameters["ambientColor"]?.SetValue(Color.DarkGray.ToVector3());
+                            Effect.Parameters["diffuseColor"]?.SetValue(Color.DarkGray.ToVector3());
+                            Effect.Parameters["ModelTexture"]?.SetValue(PisoTexture);
+                            break;
+                    case -2 : Effect.Parameters["ambientColor"]?.SetValue(Color.DarkGray.ToVector3());
+                            Effect.Parameters["diffuseColor"]?.SetValue(Color.DarkGray.ToVector3());
+                           Effect.Parameters["ModelTexture"]?.SetValue(PisoTexture);
+                            break;
+                }
 
-                Effect.Parameters["ambientColor"]?.SetValue(Color.Brown.ToVector3());
-                Effect.Parameters["diffuseColor"]?.SetValue(Color.Brown.ToVector3());
                 Effect.Parameters["specularColor"]?.SetValue(Color.White.ToVector3());
 
                 Effect.Parameters["eyePosition"]?.SetValue(cameraPosition);

@@ -415,6 +415,8 @@ namespace SomosLaBola
             //Box.Draw(FloorWorld, Camera.View, Camera.Projection);
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
 
+            Vector3 roundPosition = new Vector3(MathF.Round(PositionE.X,2), MathF.Round(PositionE.Y,2), MathF.Round(PositionE.Z,2));
+
             playerTexture = Material switch
                 {
                     M_Goma => GomaTexture,
@@ -504,7 +506,6 @@ namespace SomosLaBola
             }
             
             GraphicsDevice.RasterizerState = new RasterizerState { CullMode = CullMode.None };
-            Vector3 roundPosition = new Vector3(MathF.Round(PositionE.X,2), MathF.Round(PositionE.Y,2), MathF.Round(PositionE.Z,2));
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend,
@@ -512,6 +513,7 @@ namespace SomosLaBola
             SpriteBatch.DrawString(SpriteFont, roundPosition.ToString(), new Vector2(GraphicsDevice.Viewport.Width /2, 0), Color.White);
             SpriteBatch.DrawString(SpriteFont, "\"R\" para REINICIAR", new Vector2(GraphicsDevice.Viewport.Width / 30, 0), Color.White);
             var sphereBody = Simulation.Bodies.GetBodyReference(SphereHandles[0]);
+
             var stringSalto = "SALTO";
 
             if (puedoSaltar) 
@@ -524,6 +526,10 @@ namespace SomosLaBola
             if(godMode) 
                 SpriteBatch.DrawString(SpriteFont, "GOD MODE", new Vector2(GraphicsDevice.Viewport.Width * 4/10, 
                 GraphicsDevice.Viewport.Height * 19/20), Color.DarkBlue);
+
+            if(roundPosition.X > 17700 && roundPosition.X < 18700 && roundPosition.Z < -8500 && roundPosition.Z > -9500)
+                SpriteBatch.DrawString(SpriteFont, "GANASTE!", new Vector2(GraphicsDevice.Viewport.Width * 17/40, 
+                GraphicsDevice.Viewport.Height * 17/20), Color.Black);
 
             string stringMaterial = ProxMaterial switch
             {
@@ -1080,7 +1086,10 @@ namespace SomosLaBola
         {
             for (int i = 0; i < MatrixWorld.Count(); i++)
             {
-                Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection, Camera.Position, lightPosition);
+                var estadoFloor = i % 5;
+                if(i == 0) estadoFloor = -1;
+                else if(i == MatrixWorld.Count() - 1) estadoFloor = -2;
+                Floor.Draw(MatrixWorld[i], Camera.View, Camera.Projection, Camera.Position, lightPosition, estadoFloor);
             }
 
             float tiempoTranscurrido = (float)gameTime.TotalGameTime.TotalSeconds;
