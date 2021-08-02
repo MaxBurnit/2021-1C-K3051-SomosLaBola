@@ -342,8 +342,17 @@ namespace SomosLaBola
         private void createObstaculoMovil()
         {       
            IRecorrido recorrido = new Vaiven(600f, 0.5f, 2);
-           obstMovil = new ObstaculoMovil(Cube, MatrixWorldObs[0], recorrido, Simulation, SphereHandles,this);
+           obstMovil = new ObstaculoMovil(Cube, MatrixWorldObs[0], recorrido, Simulation,this);
            ListObstaculos.Add(obstMovil);
+
+           var worldInicial = Matrix.CreateTranslation(0, 70, -1500);
+
+           for (int i = 0; i <= 10; i++)
+           {
+                var world = Matrix.CreateScale(20) * worldInicial * Matrix.CreateTranslation(0,0, i * -100);
+                var obstaculo = ObstaculoMovil.CrearObstaculoRecorridoCircular(Cube, world, Simulation, this);
+                ListObstaculos.Add(obstaculo);
+           }
         }
 
         private void LoadPhysics()
